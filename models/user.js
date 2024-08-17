@@ -4,7 +4,7 @@ const User = sequelize.define(
 	"User",
 	{
 		user_id: {
-			type: DataTypes.STRING(10),
+			type: DataTypes.STRING(12),
 			primaryKey: true,
 		},
 		first_name: {
@@ -14,16 +14,16 @@ const User = sequelize.define(
 			type: DataTypes.STRING(30),
 		},
 		email: {
-			type: DataTypes.STRING(30),
+			type: DataTypes.STRING(35),
 			allowNull: false,
 			unique: true,
 		},
 		password: {
-			type: DataTypes.STRING(10),
+			type: DataTypes.STRING(80),
 			allowNull: false,
 		},
 		profile_pic: {
-			type: DataTypes.STRING(50),
+			type: DataTypes.STRING(100),
 		},
 		created_at: {
 			type: DataTypes.DATE,

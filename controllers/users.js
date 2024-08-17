@@ -64,3 +64,54 @@ exports.userRegister = async (req, res) => {
 		});
 	}
 };
+
+exports.userLogin = async (req, res) => {
+	try {
+		const { email, password } = req.body;
+
+		// Validate inputs
+		if (!email || !password) {
+			return res
+				.status(400)
+				.json({ success: false, message: "Email and password are required" });
+		}
+
+		// Find the user
+		const user = await Users.findOne({ where: { email } });
+		if (!user) {
+			return res
+				.status(400)
+				.json({ success: false, message: "Email not found" });
+		}
+
+		// Check password
+		const isMatch = await bcrypt.compare(password, user.password);
+		if (!isMatch) {
+			return res
+				.status(400)
+				.json({ success: false, message: "Password incorrect" });
+		}
+
+		// Generate a session token (JWT)
+		const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET, {
+			expiresIn: "24h",
+		});
+
+		const data = JSON.parse(JSON.stringify(user));
+		delete data.password;
+		delete data.forget_otp;
+
+		return res.status(200).json({
+			success: true,
+			message: "User login successfully!",
+			data: data,
+			token: token,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Login failed",
+			error: error.message,
+		});
+	}
+};

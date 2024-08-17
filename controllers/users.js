@@ -143,3 +143,57 @@ exports.getUserDetails = async (req, res) => {
 		});
 	}
 };
+
+exports.editUserProfile = async (req, res) => {
+	try {
+		const { userId } = req;
+
+		const {
+			first_name,
+			last_name,
+			profile_pic,
+			street,
+			city,
+			state,
+			zip_code,
+			country,
+		} = req.body;
+
+		// Find the user by user_id
+		const user = await Users.findOne({
+			where: { user_id: userId },
+			attributes: { exclude: ["password", "forget_otp"] },
+		});
+
+		if (!user) {
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		}
+
+		// Update user details
+		user.first_name = first_name || user.first_name;
+		user.last_name = last_name || user.last_name;
+		user.profile_pic = profile_pic || user.profile_pic;
+		user.street = street || user.street;
+		user.city = city || user.city;
+		user.state = state || user.state;
+		user.zip_code = zip_code || user.zip_code;
+		user.country = country || user.country;
+
+		// Save the updated user details
+		await user.save();
+
+		return res.status(200).json({
+			success: true,
+			message: "Profile updated successfully",
+			data: user,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to update user profile",
+			error: error.message,
+		});
+	}
+};

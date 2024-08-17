@@ -10,5 +10,10 @@ router.get("/", function (req, res, next) {
 router.post("/userRegister", userController.userRegister);
 router.post("/userLogin", userController.userLogin);
 router.get("/getUserDetails", authenticateToken, userController.getUserDetails);
+router.put(
+	"/editUserProfile",
+	authenticateToken,
+	userController.editUserProfile
+);
 
 module.exports = router;

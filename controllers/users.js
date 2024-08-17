@@ -53,8 +53,8 @@ exports.userRegister = async (req, res) => {
 		return res.status(201).json({
 			success: true,
 			message: "User registered successfully!",
-			data: data,
 			token: token,
+			data: data,
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -104,13 +104,41 @@ exports.userLogin = async (req, res) => {
 		return res.status(200).json({
 			success: true,
 			message: "User login successfully!",
-			data: data,
 			token: token,
+			data: data,
 		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
 			message: "Login failed",
+			error: error.message,
+		});
+	}
+};
+
+exports.getUserDetails = async (req, res) => {
+	try {
+		const { userId } = req;
+
+		// Find the user by user_id, excluding the password
+		const user = await Users.findOne({
+			where: { user_id: userId },
+			attributes: { exclude: ["password", "forget_otp"] },
+		});
+
+		if (!user) {
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		}
+
+		return res
+			.status(200)
+			.json({ success: true, message: "User details fetched!", data: user });
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to retrieve user details",
 			error: error.message,
 		});
 	}

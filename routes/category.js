@@ -17,5 +17,9 @@ router.put(
 	authenticateAdminToken,
 	categoryController.updateCategory
 );
-
+router.delete(
+	"/deleteCategory",
+	authenticateAdminToken,
+	categoryController.deleteCategory
+);
 module.exports = router;

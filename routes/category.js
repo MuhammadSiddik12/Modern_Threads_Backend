@@ -12,5 +12,10 @@ router.post(
 	authenticateAdminToken,
 	categoryController.createCategory
 );
+router.put(
+	"/updateCategory",
+	authenticateAdminToken,
+	categoryController.updateCategory
+);
 
 module.exports = router;

@@ -126,3 +126,41 @@ exports.adminLogin = async (req, res) => {
 		});
 	}
 };
+
+exports.editAdminProfile = async (req, res) => {
+	try {
+		const { adminId } = req;
+
+		const { admin_name } = req.body;
+
+		// Find the admin by user_id
+		const admin = await Admin.findOne({
+			where: { admin_id: adminId },
+			attributes: { exclude: ["admin_password"] },
+		});
+
+		if (!admin) {
+			return res
+				.status(404)
+				.json({ success: false, message: "Admin not found" });
+		}
+
+		// Update admin details
+		admin.admin_name = admin_name || admin.admin_name;
+
+		// Save the updated admin details
+		await admin.save();
+
+		return res.status(200).json({
+			success: true,
+			message: "Profile updated successfully",
+			data: admin,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to update admin profile",
+			error: error.message,
+		});
+	}
+};

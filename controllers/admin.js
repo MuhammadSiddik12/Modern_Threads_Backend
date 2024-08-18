@@ -164,3 +164,31 @@ exports.editAdminProfile = async (req, res) => {
 		});
 	}
 };
+
+exports.getAdminDetails = async (req, res) => {
+	try {
+		const { adminId } = req;
+
+		// Find the admin by admin_id, excluding the admin_password
+		const admin = await Admin.findOne({
+			where: { admin_id: adminId },
+			attributes: { exclude: ["admin_password"] },
+		});
+
+		if (!admin) {
+			return res
+				.status(404)
+				.json({ success: false, message: "admin not found" });
+		}
+
+		return res
+			.status(200)
+			.json({ success: true, message: "Admin details fetched!", data: admin });
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to retrieve admin details",
+			error: error.message,
+		});
+	}
+};

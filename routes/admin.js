@@ -15,6 +15,12 @@ router.put(
 	authenticateAdminToken,
 	adminController.editAdminProfile
 );
+router.get(
+	"/getAdminDetails",
+	authenticateAdminToken,
+	adminController.getAdminDetails
+);
+
 // category routes
 router.use("/category", categoryRouter);
 

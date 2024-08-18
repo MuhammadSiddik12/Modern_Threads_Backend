@@ -62,3 +62,67 @@ exports.adminSignup = async (req, res) => {
 		});
 	}
 };
+
+exports.adminLogin = async (req, res) => {
+	try {
+		const { admin_email, admin_password } = req.body;
+
+		// Validate Inputs
+		if (!admin_email || !admin_password) {
+			return res.status(400).json({
+				success: false,
+				message: "Email and password are required",
+			});
+		}
+
+		// Find Admin by Email
+		const admin = await Admin.findOne({
+			where: { admin_email },
+		});
+
+		if (!admin) {
+			return res.status(404).json({
+				success: false,
+				message: "Admin not found",
+			});
+		}
+
+		// Check Password
+		const validPassword = await bcrypt.compare(
+			admin_password,
+			admin.admin_password
+		);
+
+		if (!validPassword) {
+			return res.status(401).json({
+				success: false,
+				message: "Invalid credentials",
+			});
+		}
+
+		// Generate Session Token
+		const token = jwt.sign(
+			{ adminId: admin.admin_id },
+			process.env.JWT_SECRET_ADMIN,
+			{
+				expiresIn: "24h",
+			}
+		);
+
+		const data = JSON.parse(JSON.stringify(admin));
+		delete data.admin_password;
+
+		return res.status(200).json({
+			success: true,
+			message: "Login successful",
+			token: token,
+			data: data,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Login failed",
+			error: error.message,
+		});
+	}
+};

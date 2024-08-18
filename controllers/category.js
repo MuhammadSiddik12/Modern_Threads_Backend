@@ -133,3 +133,22 @@ exports.deleteCategory = async (req, res) => {
 		});
 	}
 };
+
+exports.getAllCategories = async (req, res) => {
+	try {
+		// Fetch all categories
+		const categories = await Category.findAll();
+
+		return res.status(200).json({
+			success: true,
+			message: "Categories fetched successfully!",
+			data: categories,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch categories",
+			error: error.message,
+		});
+	}
+};

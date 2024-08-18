@@ -22,4 +22,10 @@ router.delete(
 	authenticateAdminToken,
 	categoryController.deleteCategory
 );
+router.get(
+	"/getAllCategories",
+	authenticateAdminToken,
+	categoryController.getAllCategories
+);
+
 module.exports = router;

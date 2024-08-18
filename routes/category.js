@@ -27,5 +27,10 @@ router.get(
 	authenticateAdminToken,
 	categoryController.getAllCategories
 );
+router.get(
+	"/getCategoryDetails",
+	authenticateAdminToken,
+	categoryController.getCategoryDetails
+);
 
 module.exports = router;

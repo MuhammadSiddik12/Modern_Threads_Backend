@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const adminController = require("../controllers/admin");
-const authenticateAdminToken = require("../middleware/authAdminToken");
+const adminController = require("../../controllers/admin/admin");
+const authenticateAdminToken = require("../../middleware/authAdminToken");
 const categoryRouter = require("./category");
 
 /* GET users listing. */

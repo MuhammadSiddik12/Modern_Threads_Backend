@@ -30,6 +30,10 @@ const Product = sequelize.define(
 			type: DataTypes.INTEGER,
 			defaultValue: 1,
 		},
+		product_images: {
+			type: DataTypes.JSON(),
+			allowNull: false,
+		},
 		status: {
 			type: DataTypes.STRING(10),
 			defaultValue: "active",

@@ -14,7 +14,7 @@ exports.createCategory = async (req, res) => {
 		}
 
 		const findCategory = await Category.findOne({
-			category_name,
+			where: { category_name: category_name },
 		});
 
 		if (findCategory) {

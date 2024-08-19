@@ -3,6 +3,7 @@ const router = express.Router();
 const adminController = require("../../controllers/admin/admin");
 const authenticateAdminToken = require("../../middleware/authAdminToken");
 const categoryRouter = require("./category");
+const productRouter = require("./product");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -23,5 +24,8 @@ router.get(
 
 // category routes
 router.use("/category", categoryRouter);
+
+// product routes
+router.use("/product", productRouter);
 
 module.exports = router;

@@ -10,6 +10,10 @@ const Admin = require("./admin");
 const Payment = require("./payment");
 const Report = require("./report");
 
+// Define associations
+Product.belongsTo(Category, { foreignKey: "category_id" });
+Category.hasMany(Product, { foreignKey: "category_id" });
+
 // Sync all models
 // sequelize.sync({ alter: true }).then(() => {
 // 	console.log("Database & tables created!");

@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../../controllers/users/users");
 const authenticateToken = require("../../middleware/authUserToken");
 const productRouter = require("./product");
+const categoryRouter = require("./category");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -18,5 +19,8 @@ router.put(
 );
 // product routes
 router.use("/products", productRouter);
+
+// category routes
+router.use("/category", categoryRouter);
 
 module.exports = router;

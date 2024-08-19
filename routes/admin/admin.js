@@ -26,6 +26,6 @@ router.get(
 router.use("/category", categoryRouter);
 
 // product routes
-router.use("/product", productRouter);
+router.use("/products", productRouter);
 
 module.exports = router;

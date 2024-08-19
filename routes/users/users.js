@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../../controllers/users/users");
 const authenticateToken = require("../../middleware/authUserToken");
+const productRouter = require("./product");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -15,5 +16,7 @@ router.put(
 	authenticateToken,
 	userController.editUserProfile
 );
+// product routes
+router.use("/products", productRouter);
 
 module.exports = router;

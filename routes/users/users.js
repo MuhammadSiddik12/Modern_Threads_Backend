@@ -4,6 +4,7 @@ const userController = require("../../controllers/users/users");
 const authenticateToken = require("../../middleware/authUserToken");
 const productRouter = require("./product");
 const categoryRouter = require("./category");
+const cartRouter = require("./cart");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -22,5 +23,8 @@ router.use("/products", productRouter);
 
 // category routes
 router.use("/category", categoryRouter);
+
+// cart routes
+router.use("/cart", cartRouter);
 
 module.exports = router;

@@ -5,6 +5,7 @@ const authenticateToken = require("../../middleware/authUserToken");
 const productRouter = require("./product");
 const categoryRouter = require("./category");
 const cartRouter = require("./cart");
+const paymentRouter = require("./payments");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -26,5 +27,8 @@ router.use("/category", categoryRouter);
 
 // cart routes
 router.use("/cart", cartRouter);
+
+// payment routes
+router.use("/payments", paymentRouter);
 
 module.exports = router;

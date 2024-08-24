@@ -15,6 +15,7 @@ Product.belongsTo(Category, { foreignKey: "category_id" });
 Category.hasMany(Product, { foreignKey: "category_id" });
 Cart.belongsTo(Product, { foreignKey: "product_id" });
 Cart.belongsTo(User, { foreignKey: "user_id" });
+Order.belongsTo(User, { foreignKey: "user_id" });
 
 // Sync all models
 // sequelize.sync({ alter: true }).then(() => {

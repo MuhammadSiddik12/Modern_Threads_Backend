@@ -4,7 +4,7 @@ const Order = sequelize.define(
 	"Order",
 	{
 		order_id: {
-			type: DataTypes.STRING(10),
+			type: DataTypes.STRING(15),
 			primaryKey: true,
 		},
 		user_id: {
@@ -23,11 +23,11 @@ const Order = sequelize.define(
 			defaultValue: "Pending",
 		},
 		shipping_address: {
-			type: DataTypes.STRING(30),
+			type: DataTypes.JSON(),
 			allowNull: false,
 		},
 		billing_address: {
-			type: DataTypes.STRING(30),
+			type: DataTypes.JSON(),
 			allowNull: false,
 		},
 		order_items: {

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const cartController = require("../../controllers/users/cart");
 const authenticateToken = require("../../middleware/authUserToken");
+const orderRouter = require("./orders");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -14,5 +15,8 @@ router.get(
 	authenticateToken,
 	cartController.getAllCartItems
 );
+
+// order routes
+router.use("/order", orderRouter);
 
 module.exports = router;

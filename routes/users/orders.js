@@ -8,6 +8,15 @@ router.get("/", function (req, res, next) {
 	res.send("respond with a resource");
 });
 router.post("/createOrder", authenticateToken, orderController.createOrder);
-router.get("/getAllMyOrders", authenticateToken, orderController.getAllMyOrders);
+router.get(
+	"/getAllMyOrders",
+	authenticateToken,
+	orderController.getAllMyOrders
+);
+router.get(
+	"/getOrderDetailsById",
+	authenticateToken,
+	orderController.getOrderDetailsById
+);
 
 module.exports = router;

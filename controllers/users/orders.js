@@ -135,3 +135,71 @@ exports.getAllMyOrders = async (req, res) => {
 		});
 	}
 };
+
+exports.getOrderDetailsById = async (req, res) => {
+	try {
+		const { order_id } = req.query;
+
+		if (!order_id) {
+			return res.status(400).json({
+				success: false,
+				message: "order id is required.",
+			});
+		}
+
+		const order = await Order.findOne({
+			where: {
+				order_id: order_id,
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+			],
+		});
+
+		if (!order) {
+			return res.status(400).json({
+				success: false,
+				message: "order details not found.",
+			});
+		}
+
+		// Find all cart items where product_id is in the array of order_items
+		const cartItems = await Cart.findAll({
+			where: {
+				cart_id: {
+					[Op.in]: order.order_items,
+				},
+			},
+			include: [
+				{
+					model: Product,
+					as: "product_details",
+				},
+			],
+		});
+
+		// Integrate cart items into order
+		const ordersWithCart = {
+			...order.toJSON(),
+			cart_items: cartItems.filter((cartItem) =>
+				order.order_items.includes(cartItem.cart_id)
+			),
+		};
+
+		return res.status(200).json({
+			success: true,
+			message: "Order fetched successfully!",
+			data: ordersWithCart,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch order",
+			error: error.message,
+		});
+	}
+};

@@ -87,3 +87,49 @@ exports.createPaymentCheckout = async (req, res) => {
 		});
 	}
 };
+
+exports.webhook = (req, res) => {
+	try {
+		const sig = req.headers["stripe-signature"];
+		let event;
+
+		try {
+			event = stripe.webhooks.constructEvent(
+				req.body,
+				sig,
+				process.env.END_POINT_SECRET
+			);
+		} catch (err) {
+			console.log("Webhook Error:", err.message);
+			return res
+				.status(400)
+				.json({ messsage: `Webhook Error: ${err.message}` });
+		}
+
+		// Handle the event
+		switch (event.type) {
+			case "checkout.session.completed":
+				const session = event.data.object;
+				// Perform actions based on the session object
+				console.log("Checkout Session completed:", session);
+				break;
+			case "invoice.payment_succeeded":
+				const invoice = event.data.object;
+				// Perform actions based on the invoice object
+				console.log("Invoice payment succeeded:", invoice);
+				break;
+			// Handle other event types as needed
+			default:
+				console.log("Unhandled event type:", event.type);
+		}
+
+		// Return a response to acknowledge receipt of the event
+		return res.json({ received: true });
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to update payment",
+			error: error.message,
+		});
+	}
+};

@@ -3,6 +3,7 @@ const Product = require("../../models/product");
 const Order = require("../../models/order");
 const { Op } = require("sequelize");
 const { sequelize } = require("../../utils/sequelize");
+const User = require("../../models/user");
 
 exports.createOrder = async (req, res) => {
 	try {
@@ -77,6 +78,59 @@ exports.createOrder = async (req, res) => {
 		return res.status(500).json({
 			success: false,
 			message: "Failed to create order",
+			error: error.message,
+		});
+	}
+};
+
+exports.getAllMyOrders = async (req, res) => {
+	try {
+		const orders = await Order.findAll({
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+			],
+		});
+
+		const findCartItems = orders.flatMap((order) => order.order_items); // Flatten the order_items arrays into a single array
+
+		// Find all cart items where product_id is in the array of order_items
+		const cartItems = await Cart.findAll({
+			where: {
+				cart_id: {
+					[Op.in]: findCartItems,
+				},
+			},
+			include: [
+				{
+					model: Product,
+					as: "product_details",
+				},
+			],
+		});
+
+		// Integrate cart items into each order
+		const ordersWithCart = orders.map((order) => {
+			return {
+				...order.toJSON(),
+				cart_items: cartItems.filter((cartItem) =>
+					order.order_items.includes(cartItem.cart_id)
+				),
+			};
+		});
+
+		return res.status(200).json({
+			success: true,
+			message: "Orders fetched successfully!",
+			data: ordersWithCart,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch orders",
 			error: error.message,
 		});
 	}

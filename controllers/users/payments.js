@@ -4,10 +4,13 @@ const Order = require("../../models/order");
 const { Op } = require("sequelize");
 const User = require("../../models/user");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Payment = require("../../models/payment");
 
 exports.createPaymentCheckout = async (req, res) => {
 	try {
 		const { order_id } = req.body;
+
+		const user_id = req.userId;
 
 		if (!order_id) {
 			return res.status(400).json({
@@ -72,6 +75,18 @@ exports.createPaymentCheckout = async (req, res) => {
 			mode: "payment",
 			success_url: "https://localhost:3001/success",
 			cancel_url: "https://localhost:3001/cancel",
+		});
+
+		let timestamp = Date.now();
+		let lastSixDigits = timestamp.toString().slice(-6);
+
+		await Payment.create({
+			payment_id: `pay${lastSixDigits}`,
+			order_id,
+			user_id,
+			payment_method: "card",
+			amount: order.total_price,
+			transaction_id: session.id,
 		});
 
 		return res.status(200).json({

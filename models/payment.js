@@ -4,7 +4,7 @@ const Payment = sequelize.define(
 	"Payment",
 	{
 		payment_id: {
-			type: DataTypes.STRING(10),
+			type: DataTypes.STRING(15),
 			primaryKey: true,
 		},
 		order_id: {
@@ -34,7 +34,7 @@ const Payment = sequelize.define(
 			defaultValue: "pending",
 		},
 		transaction_id: {
-			type: DataTypes.STRING(30),
+			type: DataTypes.STRING(100),
 		},
 		created_at: {
 			type: DataTypes.DATE,

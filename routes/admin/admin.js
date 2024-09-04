@@ -4,6 +4,7 @@ const adminController = require("../../controllers/admin/admin");
 const authenticateAdminToken = require("../../middleware/authAdminToken");
 const categoryRouter = require("./category");
 const productRouter = require("./product");
+const userRouter = require("./users");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -27,5 +28,8 @@ router.use("/category", categoryRouter);
 
 // product routes
 router.use("/products", productRouter);
+
+// user routes
+router.use("/users", userRouter);
 
 module.exports = router;

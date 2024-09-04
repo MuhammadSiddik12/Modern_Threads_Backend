@@ -5,6 +5,7 @@ const authenticateAdminToken = require("../../middleware/authAdminToken");
 const categoryRouter = require("./category");
 const productRouter = require("./product");
 const userRouter = require("./users");
+const orderRouter = require("./orders");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -31,5 +32,8 @@ router.use("/products", productRouter);
 
 // user routes
 router.use("/users", userRouter);
+
+// user routes
+router.use("/orders", orderRouter);
 
 module.exports = router;

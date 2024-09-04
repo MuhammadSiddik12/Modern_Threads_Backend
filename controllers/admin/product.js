@@ -108,7 +108,8 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
 	try {
-		const { product_id } = req.body;
+		const { product_id } = req.query;
+		console.log("🚀 ~ exports.deleteProduct ~ product_id:", product_id);
 
 		if (!product_id) {
 			return res.status(400).json({

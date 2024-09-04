@@ -94,7 +94,7 @@ exports.updateCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
 	try {
-		const { category_id } = req.body; // Extract category ID from the request body
+		const { category_id } = req.query; // Extract category ID from the request body
 
 		// Validate Inputs
 		if (!category_id) {

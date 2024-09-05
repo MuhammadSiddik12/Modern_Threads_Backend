@@ -11,6 +11,10 @@ const Category = sequelize.define(
 			type: DataTypes.STRING(30),
 			allowNull: false,
 		},
+		category_image: {
+			type: DataTypes.STRING(100),
+			allowNull: true,
+		},
 		status: {
 			type: DataTypes.STRING(10),
 			defaultValue: "active",

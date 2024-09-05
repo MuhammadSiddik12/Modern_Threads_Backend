@@ -3,7 +3,7 @@ const Category = require("../../models/category");
 exports.createCategory = async (req, res) => {
 	try {
 		// Collect Category Info
-		const { category_name } = req.body;
+		const { category_name, category_image } = req.body;
 
 		// Validate Inputs
 		if (!category_name) {
@@ -31,6 +31,7 @@ exports.createCategory = async (req, res) => {
 		const newCategory = await Category.create({
 			category_name,
 			category_id: `cate${lastSixDigits}`,
+			category_image,
 		});
 
 		// Send Confirmation
@@ -50,7 +51,7 @@ exports.createCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
 	try {
-		const { category_id, category_name } = req.body;
+		const { category_id, category_name, category_image } = req.body;
 
 		// Validate Inputs
 		if (!category_id) {
@@ -74,6 +75,7 @@ exports.updateCategory = async (req, res) => {
 
 		// Update category details
 		category.category_name = category_name;
+		category.category_image = category_image;
 
 		await category.save();
 

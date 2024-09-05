@@ -6,8 +6,74 @@ const User = require("../../models/user");
 
 exports.getAllOrders = async (req, res) => {
 	try {
+		const { page, limit, search } = req.query;
+		// Fetch all categories
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
 		// Fetch all orders
 		const orders = await Order.findAll({
+			where: {
+				[Op.or]: [
+					{
+						total_price: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_status: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						user_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+			],
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		const orders_count = await Order.findAll({
+			where: {
+				[Op.or]: [
+					{
+						total_price: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_status: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						user_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
 			include: [
 				{
 					model: User,
@@ -21,6 +87,7 @@ exports.getAllOrders = async (req, res) => {
 			success: true,
 			message: "Order fetched successfully!",
 			data: orders,
+			total_count: Math.ceil(orders_count.length / parseInt(limit, 10)),
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -42,7 +109,6 @@ exports.getOrderDetails = async (req, res) => {
 				message: "Order id is required.",
 			});
 		}
-
 
 		const order = await Order.findOne({
 			where: {

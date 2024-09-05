@@ -15,12 +15,18 @@ exports.getAllPayments = async (req, res) => {
 
 		const payment = await Payment.findAll({
 			where: {
-				transaction_id: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
-				order_id: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
+				[Op.or]: [
+					{
+						transaction_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
 			},
 			include: [
 				{
@@ -35,12 +41,18 @@ exports.getAllPayments = async (req, res) => {
 
 		const total_payment = await Payment.findAll({
 			where: {
-				transaction_id: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
-				order_id: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
+				[Op.or]: [
+					{
+						transaction_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
 			},
 			include: [
 				{

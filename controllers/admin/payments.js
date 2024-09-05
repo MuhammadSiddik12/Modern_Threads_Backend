@@ -7,7 +7,41 @@ const User = require("../../models/user");
 exports.getAllPayments = async (req, res) => {
 	try {
 		// Fetch all orders
+		const { page, limit, search } = req.query;
+		// Fetch all categories
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
 		const payment = await Payment.findAll({
+			where: {
+				transaction_id: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+				order_id: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+			],
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		const total_payment = await Payment.findAll({
+			where: {
+				transaction_id: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+				order_id: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+			},
 			include: [
 				{
 					model: User,
@@ -21,6 +55,7 @@ exports.getAllPayments = async (req, res) => {
 			success: true,
 			message: "Payment fetched successfully!",
 			data: payment,
+			total_count: Math.ceil(total_payment.length / parseInt(limit, 10)),
 		});
 	} catch (error) {
 		return res.status(500).json({

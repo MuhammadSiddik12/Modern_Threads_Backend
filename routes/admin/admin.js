@@ -25,6 +25,12 @@ router.get(
 	adminController.getAdminDetails
 );
 
+router.get(
+	"/dashboardDetails",
+	authenticateAdminToken,
+	adminController.dashboardDetails
+);
+
 // category routes
 router.use("/category", categoryRouter);
 

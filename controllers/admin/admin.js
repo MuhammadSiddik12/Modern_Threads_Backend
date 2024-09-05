@@ -1,6 +1,10 @@
 const bcrypt = require("bcryptjs");
 const Admin = require("../../models/admin");
 const jwt = require("jsonwebtoken");
+const User = require("../../models/user");
+const Payment = require("../../models/payment");
+const Product = require("../../models/product");
+const Order = require("../../models/order");
 
 exports.adminSignup = async (req, res) => {
 	try {
@@ -184,6 +188,46 @@ exports.getAdminDetails = async (req, res) => {
 		return res
 			.status(200)
 			.json({ success: true, message: "Admin details fetched!", data: admin });
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to retrieve admin details",
+			error: error.message,
+		});
+	}
+};
+
+exports.dashboardDetails = async (req, res) => {
+	try {
+		const { adminId } = req;
+
+		// Find the admin by admin_id, excluding the admin_password
+		const admin = await Admin.findOne({
+			where: { admin_id: adminId },
+			attributes: { exclude: ["admin_password"] },
+		});
+
+		if (!admin) {
+			return res
+				.status(404)
+				.json({ success: false, message: "admin not found" });
+		}
+
+		const users = await User.count();
+		const products = await Product.count();
+		const orders = await Order.count();
+		const paymens = await Payment.count();
+
+		return res.status(200).json({
+			success: true,
+			message: "Admin dashboard fetched!",
+			data: {
+				totalUsers: users,
+				totalProducts: products,
+				totalOrders: orders,
+				totalPayments: paymens,
+			},
+		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,

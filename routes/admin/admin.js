@@ -6,6 +6,7 @@ const categoryRouter = require("./category");
 const productRouter = require("./product");
 const userRouter = require("./users");
 const orderRouter = require("./orders");
+const paymentRouter = require("./payments");
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -33,7 +34,10 @@ router.use("/products", productRouter);
 // user routes
 router.use("/users", userRouter);
 
-// user routes
+// orders routes
 router.use("/orders", orderRouter);
+
+// payments routes
+router.use("/payments", paymentRouter);
 
 module.exports = router;

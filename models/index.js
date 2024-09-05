@@ -34,8 +34,31 @@ Order.belongsTo(User, {
 	onDelete: "CASCADE",
 	onUpdate: "CASCADE",
 });
+Payment.belongsTo(User, {
+	as: "user_details",
+	foreignKey: "user_id",
+	onDelete: "CASCADE",
+	onUpdate: "CASCADE",
+});
+User.hasMany(Payment, {
+	as: "paymentDetails",
+	foreignKey: "user_id",
+	onDelete: "CASCADE",
+	onUpdate: "CASCADE",
+});
+Payment.belongsTo(Order, {
+	foreignKey: "order_id",
+	onDelete: "CASCADE",
+	onUpdate: "CASCADE",
+});
+Order.hasMany(Payment, {
+	as: "order_details",
+	foreignKey: "order_id",
+	onDelete: "CASCADE",
+	onUpdate: "CASCADE",
+});
 
 // Sync all models
-// sequelize.sync({ alter: true }).then(() => {
-// 	console.log("Database & tables created!");
-// });
+sequelize.sync({ alter: true }).then(() => {
+	console.log("Database & tables created!");
+});

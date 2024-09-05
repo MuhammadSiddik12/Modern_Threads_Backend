@@ -61,7 +61,7 @@ exports.createOrder = async (req, res) => {
 
 		// Create a new order
 		const newOrder = await Order.create({
-			order_id: `order#${lastSixDigits}`, // Unique ID for the order
+			order_id: `order${lastSixDigits}`, // Unique ID for the order
 			user_id,
 			total_price: totalPrice,
 			shipping_address,

@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const Category = require("../../models/category");
 
 exports.createCategory = async (req, res) => {
@@ -138,13 +139,35 @@ exports.deleteCategory = async (req, res) => {
 
 exports.getAllCategories = async (req, res) => {
 	try {
+		const { page, limit, search } = req.query;
 		// Fetch all categories
-		const categories = await Category.findAll();
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
+		const categories = await Category.findAll({
+			where: {
+				category_name: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+			},
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		const total_categories = await Category.findAll({
+			where: {
+				category_name: {
+					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+				},
+			},
+		});
 
 		return res.status(200).json({
 			success: true,
 			message: "Categories fetched successfully!",
 			data: categories,
+			total_count: Math.ceil(total_categories.length / parseInt(limit, 10)),
 		});
 	} catch (error) {
 		return res.status(500).json({

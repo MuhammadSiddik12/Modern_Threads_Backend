@@ -1,10 +1,58 @@
+const { Op } = require("sequelize");
 const Category = require("../../models/category");
 const Product = require("../../models/product");
 
 exports.getAllProducts = async (req, res) => {
 	try {
+		// Fetch all orders
+		const { page, limit, search } = req.query;
+		// Fetch all categories
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
 		// Fetch all products
 		const products = await Product.findAll({
+			where: {
+				[Op.or]: [
+					{
+						product_name: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						description: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
+			include: [
+				{
+					model: Category,
+					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+				},
+			],
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		// Fetch all products
+		const total_products = await Product.findAll({
+			where: {
+				[Op.or]: [
+					{
+						product_name: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						description: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
 			include: [
 				{
 					model: Category,
@@ -17,6 +65,7 @@ exports.getAllProducts = async (req, res) => {
 			success: true,
 			message: "Products fetched successfully!",
 			data: products,
+			total_count: Math.ceil(total_products.length / parseInt(limit, 10)),
 		});
 	} catch (error) {
 		return res.status(500).json({

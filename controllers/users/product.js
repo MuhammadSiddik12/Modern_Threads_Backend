@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const Category = require("../../models/category");
 const Product = require("../../models/product");
+const Cart = require("../../models/cart");
 
 exports.getAllProducts = async (req, res) => {
 	try {
@@ -88,7 +89,7 @@ exports.getProductById = async (req, res) => {
 		}
 
 		// Fetch the product by ID
-		const product = await Product.findOne({
+		const findProduct = await Product.findOne({
 			where: { product_id: product_id },
 			include: [
 				{
@@ -98,12 +99,19 @@ exports.getProductById = async (req, res) => {
 			],
 		});
 
-		if (!product) {
+		if (!findProduct) {
 			return res.status(404).json({
 				success: false,
 				message: "Product not found.",
 			});
 		}
+		const product = JSON.parse(JSON.stringify(findProduct));
+
+		const productInCart = await Cart.findOne({
+			where: { product_id: product_id },
+		});
+
+		product.is_added = !!productInCart;
 
 		return res.status(200).json({
 			success: true,

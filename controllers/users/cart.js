@@ -130,7 +130,13 @@ exports.getAllCartItems = async (req, res) => {
 			include: [
 				{
 					model: Product,
-					attributes: ["product_name", "description", "price"],
+					as: "product_details",
+					attributes: [
+						"product_name",
+						"description",
+						"price",
+						"product_images",
+					],
 				},
 			],
 		});
@@ -151,6 +157,42 @@ exports.getAllCartItems = async (req, res) => {
 		return res.status(500).json({
 			success: false,
 			message: "Failed to fetch cart items",
+			error: error.message,
+		});
+	}
+};
+
+exports.removeItem = async (req, res) => {
+	try {
+		const { cart_id } = req.query;
+
+		if (!cart_id) {
+			return res.status(400).json({
+				success: false,
+				message: "Cart id is required.",
+			});
+		}
+
+		const cartItem = await Cart.findOne({ where: { cart_id } });
+
+		if (!cartItem) {
+			return res.status(404).json({
+				success: false,
+				message: "Cart item not found.",
+			});
+		}
+
+		await cartItem.destroy();
+
+		return res.status(200).json({
+			success: true,
+			message: "Item removed from cart successfully!",
+			data: {},
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to update cart",
 			error: error.message,
 		});
 	}

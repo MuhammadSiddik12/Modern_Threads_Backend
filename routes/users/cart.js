@@ -15,6 +15,7 @@ router.get(
 	authenticateToken,
 	cartController.getAllCartItems
 );
+router.delete("/removeItem", authenticateToken, cartController.removeItem);
 
 // order routes
 router.use("/order", orderRouter);

@@ -140,3 +140,103 @@ exports.getProductById = async (req, res) => {
 		});
 	}
 };
+
+exports.getAllProductsByCategory = async (req, res) => {
+	try {
+		// Fetch all orders
+		const { category_id, page, limit, search } = req.query;
+		// Fetch all categories
+
+		if (!category_id) {
+			return res
+				.status(400)
+				.json({ success: false, message: "category id is required." });
+		}
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
+		// Fetch all products
+		const findProducts = await Product.findAll({
+			where: {
+				[Op.or]: [
+					{
+						product_name: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						description: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
+			include: [
+				{
+					model: Category,
+					where: {
+						category_id: category_id,
+					},
+					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+				},
+			],
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		// Fetch all products
+		const total_products = await Product.findAll({
+			where: {
+				[Op.or]: [
+					{
+						product_name: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						description: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
+			include: [
+				{
+					model: Category,
+					where: {
+						category_id: category_id,
+					},
+					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+				},
+			],
+		});
+
+		const products = JSON.parse(JSON.stringify(findProducts));
+
+		const productInCart = await Cart.findAll({
+			where: { product_id: { [Op.in]: products.map((e) => e.product_id) } },
+		});
+
+		for (let index = 0; index < products.length; index++) {
+			const element = products[index];
+			const findProductInCart = productInCart.find(
+				(e) => e.product_id == element.product_id
+			);
+			element.is_added = !!findProductInCart;
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Products fetched successfully!",
+			data: products,
+			total_count: Math.ceil(total_products.length / parseInt(limit, 10)),
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch products",
+			error: error.message,
+		});
+	}
+};

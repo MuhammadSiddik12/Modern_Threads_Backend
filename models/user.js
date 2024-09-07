@@ -13,6 +13,9 @@ const User = sequelize.define(
 		last_name: {
 			type: DataTypes.STRING(30),
 		},
+		phone_number: {
+			type: DataTypes.STRING(15),
+		},
 		email: {
 			type: DataTypes.STRING(50),
 			allowNull: false,

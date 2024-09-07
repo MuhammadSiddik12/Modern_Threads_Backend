@@ -4,11 +4,11 @@ const Users = require("../../models/user");
 
 exports.userRegister = async (req, res) => {
 	try {
-		const { first_name, last_name, email, password } = req.body;
+		const { first_name, last_name, email, password, phone_number } = req.body;
 		console.log("🚀 ~ exports.userRegister= ~ req.body:", req.body);
 
 		// Validate inputs
-		if (!first_name || !last_name || !email || !password) {
+		if (!first_name || !last_name || !email || !password || !phone_number) {
 			return res
 				.status(400)
 				.json({ success: false, message: "All fields are required" });
@@ -35,6 +35,7 @@ exports.userRegister = async (req, res) => {
 			last_name,
 			email,
 			password: hashedPassword,
+			phone_number,
 		});
 
 		const data = JSON.parse(JSON.stringify(newUser));
@@ -157,6 +158,7 @@ exports.editUserProfile = async (req, res) => {
 			state,
 			zip_code,
 			country,
+			phone_number,
 		} = req.body;
 
 		// Find the user by user_id
@@ -180,6 +182,7 @@ exports.editUserProfile = async (req, res) => {
 		user.state = state || user.state;
 		user.zip_code = zip_code || user.zip_code;
 		user.country = country || user.country;
+		user.phone_number = phone_number || user.phone_number;
 
 		// Save the updated user details
 		await user.save();

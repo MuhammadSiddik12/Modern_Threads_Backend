@@ -44,6 +44,7 @@ exports.createPaymentCheckout = async (req, res) => {
 				cart_id: {
 					[Op.in]: order.order_items,
 				},
+				order_created: false,
 			},
 			include: [
 				{
@@ -88,6 +89,13 @@ exports.createPaymentCheckout = async (req, res) => {
 			amount: order.total_price,
 			transaction_id: session.id,
 		});
+
+		await Cart.update(
+			{ order_created: true },
+			{
+				where: { cart_id: { [Op.in]: order.order_items } },
+			}
+		);
 
 		return res.status(200).json({
 			success: true,

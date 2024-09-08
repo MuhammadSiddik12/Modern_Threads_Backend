@@ -69,13 +69,6 @@ exports.createOrder = async (req, res) => {
 			order_items,
 		});
 
-		await Cart.update(
-			{ order_created: true },
-			{
-				where: { cart_id: { [Op.in]: order_items } },
-			}
-		);
-
 		return res.status(201).json({
 			success: true,
 			message: "Order created successfully!",

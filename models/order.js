@@ -31,7 +31,7 @@ const Order = sequelize.define(
 			allowNull: false,
 		},
 		order_items: {
-			type: DataTypes.JSON(DataTypes.STRING),
+			type: DataTypes.JSONB(DataTypes.STRING),
 			allowNull: false,
 		},
 		created_at: {

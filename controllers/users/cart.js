@@ -1,5 +1,6 @@
 const Cart = require("../../models/cart");
 const Product = require("../../models/product");
+const { sequelize } = require("../../utils/sequelize");
 
 exports.addToCart = async (req, res) => {
 	try {
@@ -148,10 +149,21 @@ exports.getAllCartItems = async (req, res) => {
 			});
 		}
 
+		const findOrder = await sequelize.query(
+			"SELECT * FROM orders WHERE order_items @> :orderItems::jsonb",
+			{
+				replacements: {
+					orderItems: JSON.stringify(cartItems.map((e) => e.cart_id)),
+				},
+				type: sequelize.QueryTypes.SELECT,
+			}
+		);
+
 		return res.status(200).json({
 			success: true,
 			message: "Cart items fetched successfully!",
 			data: cartItems,
+			order_details: findOrder,
 		});
 	} catch (error) {
 		return res.status(500).json({

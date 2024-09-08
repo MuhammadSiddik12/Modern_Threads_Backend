@@ -31,7 +31,7 @@ exports.createOrder = async (req, res) => {
 		}
 
 		const findOrder = await sequelize.query(
-			"SELECT * FROM orders WHERE JSON_CONTAINS(order_items, :orderItems)",
+			"SELECT * FROM orders WHERE order_items @> :orderItems::jsonb;",
 			{
 				replacements: { orderItems: JSON.stringify(order_items) },
 				type: sequelize.QueryTypes.SELECT,

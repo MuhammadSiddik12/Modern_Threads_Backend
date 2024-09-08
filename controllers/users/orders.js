@@ -203,3 +203,43 @@ exports.getOrderDetailsById = async (req, res) => {
 		});
 	}
 };
+
+exports.cancelOrderById = async (req, res) => {
+	try {
+		const { order_id } = req.query;
+
+		if (!order_id) {
+			return res.status(400).json({
+				success: false,
+				message: "order id is required.",
+			});
+		}
+
+		const order = await Order.findOne({
+			where: {
+				order_id: order_id,
+			},
+		});
+
+		if (!order) {
+			return res.status(400).json({
+				success: false,
+				message: "order details not found.",
+			});
+		}
+
+		await order.destroy();
+
+		return res.status(200).json({
+			success: true,
+			message: "Order canceled successfully!",
+			data: {},
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to cancel order",
+			error: error.message,
+		});
+	}
+};

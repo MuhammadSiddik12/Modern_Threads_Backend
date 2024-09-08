@@ -18,5 +18,10 @@ router.get(
 	authenticateToken,
 	orderController.getOrderDetailsById
 );
+router.delete(
+	"/cancelOrderById",
+	authenticateToken,
+	orderController.cancelOrderById
+);
 
 module.exports = router;

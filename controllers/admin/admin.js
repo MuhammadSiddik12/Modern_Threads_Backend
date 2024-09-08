@@ -5,6 +5,7 @@ const User = require("../../models/user");
 const Payment = require("../../models/payment");
 const Product = require("../../models/product");
 const Order = require("../../models/order");
+const Category = require("../../models/category");
 
 exports.adminSignup = async (req, res) => {
 	try {
@@ -217,6 +218,7 @@ exports.dashboardDetails = async (req, res) => {
 		const products = await Product.count();
 		const orders = await Order.count();
 		const paymens = await Payment.count();
+		const category = await Category.count();
 
 		return res.status(200).json({
 			success: true,
@@ -226,6 +228,7 @@ exports.dashboardDetails = async (req, res) => {
 				totalProducts: products,
 				totalOrders: orders,
 				totalPayments: paymens,
+				totalCategory: category,
 			},
 		});
 	} catch (error) {

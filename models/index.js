@@ -41,19 +41,20 @@ Payment.belongsTo(User, {
 	onUpdate: "CASCADE",
 });
 User.hasMany(Payment, {
-	as: "paymentDetails",
+	as: "payment_details",
 	foreignKey: "user_id",
 	onDelete: "CASCADE",
 	onUpdate: "CASCADE",
 });
 Payment.belongsTo(Order, {
 	foreignKey: "order_id",
+	as: "order_details", // Alias must match the query
 	onDelete: "CASCADE",
 	onUpdate: "CASCADE",
 });
 Order.hasMany(Payment, {
-	as: "order_details",
 	foreignKey: "order_id",
+	as: "payment_details",
 	onDelete: "CASCADE",
 	onUpdate: "CASCADE",
 });

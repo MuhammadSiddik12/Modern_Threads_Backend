@@ -12,5 +12,14 @@ router.post(
 	authenticateToken,
 	paymentController.createPaymentCheckout
 );
-
+router.get(
+	"/getAllPayments",
+	authenticateToken,
+	paymentController.getAllPayments
+);
+router.get(
+	"/getPaymentDetails",
+	authenticateToken,
+	paymentController.getPaymentDetails
+);
 module.exports = router;

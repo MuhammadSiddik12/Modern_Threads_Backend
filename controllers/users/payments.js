@@ -156,3 +156,149 @@ exports.webhook = (req, res) => {
 		});
 	}
 };
+
+exports.getAllPayments = async (req, res) => {
+	try {
+		// Fetch all orders
+		const { page, limit, search } = req.query;
+		// Fetch all categories
+
+		const user_id = req.userId;
+
+		const pageNumber = Number(page) || 1;
+		const pageSize = Number(limit) || 10;
+
+		const payment = await Payment.findAll({
+			where: {
+				user_id: user_id,
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+				{
+					model: Order,
+					as: "order_details",
+				},
+			],
+			limit: pageSize, // Number of items per page
+			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+		});
+
+		const total_payment = await Payment.findAll({
+			where: {
+				[Op.or]: [
+					{
+						transaction_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+					{
+						order_id: {
+							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+						},
+					},
+				],
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+				{
+					model: Order,
+					as: "order_details",
+				},
+			],
+		});
+
+		return res.status(200).json({
+			success: true,
+			message: "Payment fetched successfully!",
+			data: payment,
+			total_count: Math.ceil(total_payment.length / parseInt(limit, 10)),
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch payment",
+			error: error.message,
+		});
+	}
+};
+
+exports.getPaymentDetails = async (req, res) => {
+	try {
+		const { payment_id } = req.query; // Extract payment ID from the request query
+		const user_id = req.userId;
+
+		// Validate Inputs
+		if (!payment_id) {
+			return res.status(400).json({
+				success: false,
+				message: "Payment id is required.",
+			});
+		}
+
+		const payment = await Payment.findOne({
+			where: {
+				payment_id: payment_id,
+				user_id: user_id,
+			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"],
+				},
+				{
+					model: Order,
+					as: "order_details",
+				},
+			],
+		});
+
+		if (!payment) {
+			return res.status(400).json({
+				success: false,
+				message: "payment details not found.",
+			});
+		}
+
+		const findCartItems = payment.order_details.order_items; // Flatten the order_items arrays into a single array
+
+		// Find all cart items where product_id is in the array of order_items
+		const cartItems = await Cart.findAll({
+			where: {
+				cart_id: {
+					[Op.in]: findCartItems,
+				},
+			},
+			include: [
+				{
+					model: Product,
+					as: "product_details",
+				},
+			],
+		});
+
+		const data = JSON.parse(JSON.stringify(payment));
+
+		data.cart_details = cartItems;
+
+		return res.status(200).json({
+			success: true,
+			message: "Payment fetched successfully!",
+			data: data,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Failed to fetch payment",
+			error: error.message,
+		});
+	}
+};

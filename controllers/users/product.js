@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
 const Category = require("../../models/category");
 const Product = require("../../models/product");
 const Cart = require("../../models/cart");
@@ -16,16 +16,15 @@ exports.getAllProducts = async (req, res) => {
 		const findProducts = await Product.findAll({
 			where: {
 				[Op.or]: [
-					{
-						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
-					{
-						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
+					Sequelize.where(
+						Sequelize.fn("LOWER", Sequelize.col("product_name")),
+						{
+							[Op.like]: `%${search.toLowerCase()}%`,
+						}
+					),
+					Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("description")), {
+						[Op.like]: `%${search.toLowerCase()}%`,
+					}),
 				],
 			},
 			include: [
@@ -42,16 +41,15 @@ exports.getAllProducts = async (req, res) => {
 		const total_products = await Product.findAll({
 			where: {
 				[Op.or]: [
-					{
-						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
-					{
-						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
+					Sequelize.where(
+						Sequelize.fn("LOWER", Sequelize.col("product_name")),
+						{
+							[Op.like]: `%${search.toLowerCase()}%`, // Convert search query to lowercase
+						}
+					),
+					Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("description")), {
+						[Op.like]: `%${search.toLowerCase()}%`, // Convert search query to lowercase
+					}),
 				],
 			},
 			include: [
@@ -167,12 +165,12 @@ exports.getAllProductsByCategory = async (req, res) => {
 				[Op.or]: [
 					{
 						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
 						},
 					},
 					{
 						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
 						},
 					},
 				],
@@ -196,12 +194,12 @@ exports.getAllProductsByCategory = async (req, res) => {
 				[Op.or]: [
 					{
 						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
 						},
 					},
 					{
 						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
 						},
 					},
 				],

@@ -6,7 +6,7 @@ const Cart = require("../../models/cart");
 exports.getAllProducts = async (req, res) => {
 	try {
 		// Fetch all orders
-		const { page, limit, search } = req.query;
+		const { page, limit, search, user_id } = req.query;
 		// Fetch all categories
 
 		const pageNumber = Number(page) || 1;
@@ -64,16 +64,18 @@ exports.getAllProducts = async (req, res) => {
 
 		const products = JSON.parse(JSON.stringify(findProducts));
 
-		const productInCart = await Cart.findAll({
-			where: { product_id: { [Op.in]: products.map((e) => e.product_id) } },
-		});
+		if (user_id != "") {
+			const productInCart = await Cart.findAll({
+				where: { product_id: { [Op.in]: products.map((e) => e.product_id) } },
+			});
 
-		for (let index = 0; index < products.length; index++) {
-			const element = products[index];
-			const findProductInCart = productInCart.find(
-				(e) => e.product_id == element.product_id
-			);
-			element.is_added = !!findProductInCart;
+			for (let index = 0; index < products.length; index++) {
+				const element = products[index];
+				const findProductInCart = productInCart.find(
+					(e) => e.product_id == element.product_id
+				);
+				element.is_added = !!findProductInCart;
+			}
 		}
 
 		return res.status(200).json({

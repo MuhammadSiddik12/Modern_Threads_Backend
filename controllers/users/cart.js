@@ -27,7 +27,7 @@ exports.addToCart = async (req, res) => {
 
 		// Find the cart item
 		const checkCartItem = await Cart.findOne({
-			where: { product_id: product_id },
+			where: { product_id: product_id, order_created: false },
 		});
 
 		if (checkCartItem) {
@@ -78,7 +78,9 @@ exports.updateCart = async (req, res) => {
 		}
 
 		// Find the cart item
-		const cartItem = await Cart.findOne({ where: { cart_id } });
+		const cartItem = await Cart.findOne({
+			where: { cart_id, order_created: false },
+		});
 
 		if (!cartItem) {
 			return res.status(404).json({
@@ -127,7 +129,7 @@ exports.getAllCartItems = async (req, res) => {
 
 		// Fetch all cart items for the user, including product details
 		const cartItems = await Cart.findAll({
-			where: { user_id: userId },
+			where: { user_id: userId, order_created: false },
 			include: [
 				{
 					model: Product,
@@ -143,9 +145,11 @@ exports.getAllCartItems = async (req, res) => {
 		});
 
 		if (cartItems.length === 0) {
-			return res.status(404).json({
-				success: false,
+			return res.status(200).json({
+				success: true,
 				message: "No items found in the cart.",
+				data: [],
+				order_details: [],
 			});
 		}
 
@@ -185,7 +189,9 @@ exports.removeItem = async (req, res) => {
 			});
 		}
 
-		const cartItem = await Cart.findOne({ where: { cart_id } });
+		const cartItem = await Cart.findOne({
+			where: { cart_id, order_created: false },
+		});
 
 		if (!cartItem) {
 			return res.status(404).json({

@@ -66,7 +66,10 @@ exports.getAllProducts = async (req, res) => {
 
 		if (user_id != "") {
 			const productInCart = await Cart.findAll({
-				where: { product_id: { [Op.in]: products.map((e) => e.product_id) } },
+				where: {
+					product_id: { [Op.in]: products.map((e) => e.product_id) },
+					order_created: false,
+				},
 			});
 
 			for (let index = 0; index < products.length; index++) {
@@ -124,7 +127,7 @@ exports.getProductById = async (req, res) => {
 		const product = JSON.parse(JSON.stringify(findProduct));
 
 		const productInCart = await Cart.findOne({
-			where: { product_id: product_id },
+			where: { product_id: product_id, order_created: false },
 		});
 
 		product.is_added = !!productInCart;
@@ -217,7 +220,12 @@ exports.getAllProductsByCategory = async (req, res) => {
 		const products = JSON.parse(JSON.stringify(findProducts));
 
 		const productInCart = await Cart.findAll({
-			where: { product_id: { [Op.in]: products.map((e) => e.product_id) } },
+			where: {
+				product_id: {
+					[Op.in]: products.map((e) => e.product_id),
+				},
+				order_created: false,
+			},
 		});
 
 		for (let index = 0; index < products.length; index++) {

@@ -30,6 +30,10 @@ const Cart = sequelize.define(
 				key: "user_id",
 			},
 		},
+		order_created: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false,
+		},
 		created_at: {
 			type: DataTypes.DATE,
 			allowNull: false,

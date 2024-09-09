@@ -170,7 +170,7 @@ exports.getAllCategories = async (req, res) => {
 			success: true,
 			message: "Categories fetched successfully!",
 			data: categories,
-			total_count: total_categories,
+			total_count: Math.ceil(total_categories / pageSize),
 		});
 	} catch (error) {
 		return res.status(500).json({

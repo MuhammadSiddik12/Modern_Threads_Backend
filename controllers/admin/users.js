@@ -60,8 +60,7 @@ exports.getAllUsers = async (req, res) => {
 			success: true,
 			message: "Users fetched successfully!",
 			data: users,
-			total_count: totalUsersCount, // Total number of users
-			total_pages: Math.ceil(totalUsersCount / pageSize), // Total number of pages
+			total_count: Math.ceil(totalUsersCount / pageSize), // Total number of pages
 		});
 	} catch (error) {
 		return res.status(500).json({

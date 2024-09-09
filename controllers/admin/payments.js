@@ -54,6 +54,13 @@ exports.getAllPayments = async (req, res) => {
 					},
 				],
 			},
+			include: [
+				{
+					model: User,
+					as: "user_details",
+					attributes: ["user_id", "first_name", "last_name", "email"], // Include user details
+				},
+			],
 		});
 
 		return res.status(200).json({
@@ -94,6 +101,7 @@ exports.getPaymentDetails = async (req, res) => {
 				},
 				{
 					model: Order, // Include related order details
+					as: "order_details",
 				},
 			],
 		});

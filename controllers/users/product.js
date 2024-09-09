@@ -96,7 +96,7 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
 	try {
-		const { product_id } = req.query;
+		const { product_id, user_id } = req.query;
 
 		if (!product_id) {
 			return res.status(400).json({
@@ -124,9 +124,13 @@ exports.getProductById = async (req, res) => {
 		}
 		const product = JSON.parse(JSON.stringify(findProduct));
 
-		const productInCart = await Cart.findOne({
-			where: { product_id: product_id, order_created: false },
-		});
+		let productInCart;
+
+		if (user_id != "") {
+			productInCart = await Cart.findOne({
+				where: { product_id: product_id, order_created: false, user_id },
+			});
+		}
 
 		product.is_added = !!productInCart;
 

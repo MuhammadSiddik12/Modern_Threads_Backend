@@ -7,6 +7,7 @@ const productRouter = require("./product"); // Import product routes
 const userRouter = require("./users"); // Import user routes
 const orderRouter = require("./orders"); // Import order routes
 const paymentRouter = require("./payments"); // Import payment routes
+const reportRouter = require("./report"); // Import reports routes
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
@@ -54,5 +55,8 @@ router.use("/orders", orderRouter);
 
 // Use payment routes under "/payments"
 router.use("/payments", paymentRouter);
+
+// Use report routes under "/reports"
+router.use("/reports", reportRouter);
 
 module.exports = router; // Export the router for use in other modules

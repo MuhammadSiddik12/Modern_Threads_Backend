@@ -5,7 +5,7 @@ const Report = sequelize.define(
 	"Report",
 	{
 		report_id: {
-			type: DataTypes.STRING(10), // Data type and length for report ID
+			type: DataTypes.STRING(15), // Data type and length for report ID
 			primaryKey: true, // Define report_id as the primary key
 		},
 		report_type: {
@@ -13,7 +13,7 @@ const Report = sequelize.define(
 			allowNull: false, // Report type is required
 		},
 		report_url: {
-			type: DataTypes.STRING(30), // Data type and length for report URL
+			type: DataTypes.STRING(100), // Data type and length for report URL
 			allowNull: false, // Report URL is required
 		},
 		status: {

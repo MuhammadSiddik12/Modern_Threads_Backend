@@ -5,85 +5,66 @@ const Cart = require("../../models/cart");
 
 exports.getAllProducts = async (req, res) => {
 	try {
-		// Fetch all orders
-		const { page, limit, search, user_id } = req.query;
-		// Fetch all categories
+		const { page = 1, limit = 10, search = "", user_id } = req.query;
 
-		const pageNumber = Number(page) || 1;
-		const pageSize = Number(limit) || 10;
+		// Convert page and limit to numbers
+		const pageNumber = Number(page);
+		const pageSize = Number(limit);
 
-		// Fetch all products
-		const findProducts = await Product.findAll({
-			where: {
-				[Op.or]: [
-					Sequelize.where(
-						Sequelize.fn("LOWER", Sequelize.col("product_name")),
-						{
-							[Op.like]: `%${search.toLowerCase()}%`,
-						}
-					),
-					Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("description")), {
-						[Op.like]: `%${search.toLowerCase()}%`,
-					}),
-				],
-			},
-			include: [
-				{
-					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+		// Fetch paginated products and total count
+		const { count: totalProducts, rows: products } =
+			await Product.findAndCountAll({
+				where: {
+					[Op.or]: [
+						// Case-insensitive search for product name
+						Sequelize.where(
+							Sequelize.fn("LOWER", Sequelize.col("product_name")),
+							{
+								[Op.like]: `%${search.toLowerCase()}%`,
+							}
+						),
+						// Case-insensitive search for description
+						Sequelize.where(
+							Sequelize.fn("LOWER", Sequelize.col("description")),
+							{
+								[Op.like]: `%${search.toLowerCase()}%`,
+							}
+						),
+					],
 				},
-			],
-			limit: pageSize, // Number of items per page
-			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
-		});
-
-		// Fetch all products
-		const total_products = await Product.findAll({
-			where: {
-				[Op.or]: [
-					Sequelize.where(
-						Sequelize.fn("LOWER", Sequelize.col("product_name")),
-						{
-							[Op.like]: `%${search.toLowerCase()}%`, // Convert search query to lowercase
-						}
-					),
-					Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("description")), {
-						[Op.like]: `%${search.toLowerCase()}%`, // Convert search query to lowercase
-					}),
+				include: [
+					{
+						model: Category,
+						attributes: ["category_id", "category_name"], // Include category details
+					},
 				],
-			},
-			include: [
-				{
-					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
-				},
-			],
-		});
+				limit: pageSize, // Number of items per page
+				offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+			});
 
-		const products = JSON.parse(JSON.stringify(findProducts));
-
-		if (user_id != "") {
-			const productInCart = await Cart.findAll({
+		if (user_id) {
+			// Fetch cart items for the user
+			const cartItems = await Cart.findAll({
 				where: {
 					product_id: { [Op.in]: products.map((e) => e.product_id) },
 					order_created: false,
 				},
 			});
 
-			for (let index = 0; index < products.length; index++) {
-				const element = products[index];
-				const findProductInCart = productInCart.find(
-					(e) => e.product_id == element.product_id
+			// Mark products as added if they are in the cart
+			products.forEach((product) => {
+				product.is_added = cartItems.some(
+					(item) => item.product_id === product.product_id
 				);
-				element.is_added = !!findProductInCart;
-			}
+			});
 		}
 
+		// Return the paginated products and total count
 		return res.status(200).json({
 			success: true,
 			message: "Products fetched successfully!",
 			data: products,
-			total_count: Math.ceil(total_products.length / parseInt(limit, 10)),
+			total_count: Math.ceil(totalProducts / pageSize), // Calculate total pages
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -111,7 +92,7 @@ exports.getProductById = async (req, res) => {
 			include: [
 				{
 					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+					attributes: ["category_id", "category_name"], // Include category details
 				},
 			],
 		});
@@ -124,15 +105,13 @@ exports.getProductById = async (req, res) => {
 		}
 		const product = JSON.parse(JSON.stringify(findProduct));
 
-		let productInCart;
-
-		if (user_id != "") {
-			productInCart = await Cart.findOne({
+		if (user_id) {
+			// Check if the product is in the user's cart
+			const productInCart = await Cart.findOne({
 				where: { product_id: product_id, order_created: false, user_id },
 			});
+			product.is_added = !!productInCart;
 		}
-
-		product.is_added = !!productInCart;
 
 		return res.status(200).json({
 			success: true,
@@ -150,99 +129,74 @@ exports.getProductById = async (req, res) => {
 
 exports.getAllProductsByCategory = async (req, res) => {
 	try {
-		// Fetch all orders
-		const { category_id, page, limit, search } = req.query;
-		// Fetch all categories
+		const { category_id, page = 1, limit = 10, search = "" } = req.query;
 
 		if (!category_id) {
-			return res
-				.status(400)
-				.json({ success: false, message: "category id is required." });
+			return res.status(400).json({
+				success: false,
+				message: "Category id is required.",
+			});
 		}
 
-		const pageNumber = Number(page) || 1;
-		const pageSize = Number(limit) || 10;
+		// Convert page and limit to numbers
+		const pageNumber = Number(page);
+		const pageSize = Number(limit);
 
-		// Fetch all products
-		const findProducts = await Product.findAll({
-			where: {
-				[Op.or]: [
-					{
-						product_name: {
-							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
+		// Fetch paginated products and total count
+		const { count: totalProducts, rows: products } =
+			await Product.findAndCountAll({
+				where: {
+					[Op.or]: [
+						// Case-insensitive search for product name
+						{
+							product_name: {
+								[Op.iLike]: `%${search}%`,
+							},
 						},
-					},
-					{
-						description: {
-							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
+						// Case-insensitive search for description
+						{
+							description: {
+								[Op.iLike]: `%${search}%`,
+							},
 						},
+					],
+				},
+				include: [
+					{
+						model: Category,
+						where: {
+							category_id: category_id,
+						},
+						attributes: ["category_id", "category_name"], // Include category details
 					},
 				],
-			},
-			include: [
-				{
-					model: Category,
+				limit: pageSize, // Number of items per page
+				offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+			});
+
+		// Fetch cart items for the user (if user_id is provided)
+		const cartItems = user_id
+			? await Cart.findAll({
 					where: {
-						category_id: category_id,
+						product_id: { [Op.in]: products.map((e) => e.product_id) },
+						order_created: false,
 					},
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
-				},
-			],
-			limit: pageSize, // Number of items per page
-			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
-		});
+			  })
+			: [];
 
-		// Fetch all products
-		const total_products = await Product.findAll({
-			where: {
-				[Op.or]: [
-					{
-						product_name: {
-							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
-					{
-						description: {
-							[Op.iLike]: `%${search}%`, // Search by category name (case insensitive)
-						},
-					},
-				],
-			},
-			include: [
-				{
-					model: Category,
-					where: {
-						category_id: category_id,
-					},
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
-				},
-			],
-		});
-
-		const products = JSON.parse(JSON.stringify(findProducts));
-
-		const productInCart = await Cart.findAll({
-			where: {
-				product_id: {
-					[Op.in]: products.map((e) => e.product_id),
-				},
-				order_created: false,
-			},
-		});
-
-		for (let index = 0; index < products.length; index++) {
-			const element = products[index];
-			const findProductInCart = productInCart.find(
-				(e) => e.product_id == element.product_id
+		// Mark products as added if they are in the cart
+		products.forEach((product) => {
+			product.is_added = cartItems.some(
+				(item) => item.product_id === product.product_id
 			);
-			element.is_added = !!findProductInCart;
-		}
+		});
 
+		// Return the paginated products and total count
 		return res.status(200).json({
 			success: true,
 			message: "Products fetched successfully!",
 			data: products,
-			total_count: Math.ceil(total_products.length / parseInt(limit, 10)),
+			total_count: Math.ceil(totalProducts / pageSize), // Calculate total pages
 		});
 	} catch (error) {
 		return res.status(500).json({

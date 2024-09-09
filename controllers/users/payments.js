@@ -9,20 +9,19 @@ const Payment = require("../../models/payment");
 exports.createPaymentCheckout = async (req, res) => {
 	try {
 		const { order_id } = req.body;
-
 		const user_id = req.userId;
 
+		// Validate input
 		if (!order_id) {
 			return res.status(400).json({
 				success: false,
-				message: "order id is required.",
+				message: "Order id is required.",
 			});
 		}
 
+		// Fetch the order with user details
 		const order = await Order.findOne({
-			where: {
-				order_id: order_id,
-			},
+			where: { order_id },
 			include: [
 				{
 					model: User,
@@ -35,15 +34,14 @@ exports.createPaymentCheckout = async (req, res) => {
 		if (!order) {
 			return res.status(400).json({
 				success: false,
-				message: "order details not found.",
+				message: "Order details not found.",
 			});
 		}
 
+		// Fetch cart items for the order
 		const cartItems = await Cart.findAll({
 			where: {
-				cart_id: {
-					[Op.in]: order.order_items,
-				},
+				cart_id: { [Op.in]: order.order_items },
 				order_created: false,
 			},
 			include: [
@@ -57,10 +55,11 @@ exports.createPaymentCheckout = async (req, res) => {
 		if (!cartItems.length) {
 			return res.status(400).json({
 				success: false,
-				message: "cart details not found.",
+				message: "Cart details not found.",
 			});
 		}
 
+		// Create a Stripe checkout session
 		const session = await stripe.checkout.sessions.create({
 			payment_method_types: ["card"],
 			line_items: cartItems.map((item) => ({
@@ -81,6 +80,7 @@ exports.createPaymentCheckout = async (req, res) => {
 		let timestamp = Date.now();
 		let lastSixDigits = timestamp.toString().slice(-6);
 
+		// Create a payment record
 		await Payment.create({
 			payment_id: `pay${lastSixDigits}`,
 			order_id,
@@ -90,6 +90,7 @@ exports.createPaymentCheckout = async (req, res) => {
 			transaction_id: session.id,
 		});
 
+		// Mark cart items as having been ordered
 		await Cart.update(
 			{ order_created: true },
 			{
@@ -99,7 +100,7 @@ exports.createPaymentCheckout = async (req, res) => {
 
 		return res.status(200).json({
 			success: true,
-			message: "Checkout created successfuly.",
+			message: "Checkout created successfully.",
 			data: session.url,
 		});
 	} catch (error) {
@@ -116,6 +117,7 @@ exports.webhook = (req, res) => {
 		const sig = req.headers["stripe-signature"];
 		let event;
 
+		// Verify the webhook signature
 		try {
 			event = stripe.webhooks.constructEvent(
 				req.body,
@@ -124,9 +126,7 @@ exports.webhook = (req, res) => {
 			);
 		} catch (err) {
 			console.log("Webhook Error:", err.message);
-			return res
-				.status(400)
-				.json({ messsage: `Webhook Error: ${err.message}` });
+			return res.status(400).json({ message: `Webhook Error: ${err.message}` });
 		}
 
 		// Handle the event
@@ -141,12 +141,11 @@ exports.webhook = (req, res) => {
 				// Perform actions based on the invoice object
 				console.log("Invoice payment succeeded:", invoice);
 				break;
-			// Handle other event types as needed
 			default:
 				console.log("Unhandled event type:", event.type);
 		}
 
-		// Return a response to acknowledge receipt of the event
+		// Respond to acknowledge receipt of the event
 		return res.json({ received: true });
 	} catch (error) {
 		return res.status(500).json({
@@ -159,19 +158,15 @@ exports.webhook = (req, res) => {
 
 exports.getAllPayments = async (req, res) => {
 	try {
-		// Fetch all orders
 		const { page, limit, search } = req.query;
-		// Fetch all categories
-
 		const user_id = req.userId;
 
 		const pageNumber = Number(page) || 1;
 		const pageSize = Number(limit) || 10;
 
+		// Fetch payments with pagination
 		const payment = await Payment.findAll({
-			where: {
-				user_id: user_id,
-			},
+			where: { user_id },
 			include: [
 				{
 					model: User,
@@ -183,21 +178,22 @@ exports.getAllPayments = async (req, res) => {
 					as: "order_details",
 				},
 			],
-			limit: pageSize, // Number of items per page
-			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
+			limit: pageSize,
+			offset: (pageNumber - 1) * pageSize,
 		});
 
+		// Fetch total count for pagination
 		const total_payment = await Payment.findAll({
 			where: {
 				[Op.or]: [
 					{
 						transaction_id: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`,
 						},
 					},
 					{
 						order_id: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`,
 						},
 					},
 				],
@@ -217,14 +213,14 @@ exports.getAllPayments = async (req, res) => {
 
 		return res.status(200).json({
 			success: true,
-			message: "Payment fetched successfully!",
+			message: "Payments fetched successfully!",
 			data: payment,
 			total_count: Math.ceil(total_payment.length / parseInt(limit, 10)),
 		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
-			message: "Failed to fetch payment",
+			message: "Failed to fetch payments",
 			error: error.message,
 		});
 	}
@@ -232,10 +228,10 @@ exports.getAllPayments = async (req, res) => {
 
 exports.getPaymentDetails = async (req, res) => {
 	try {
-		const { payment_id } = req.query; // Extract payment ID from the request query
+		const { payment_id } = req.query;
 		const user_id = req.userId;
 
-		// Validate Inputs
+		// Validate input
 		if (!payment_id) {
 			return res.status(400).json({
 				success: false,
@@ -243,11 +239,9 @@ exports.getPaymentDetails = async (req, res) => {
 			});
 		}
 
+		// Fetch the payment details with user and order information
 		const payment = await Payment.findOne({
-			where: {
-				payment_id: payment_id,
-				user_id: user_id,
-			},
+			where: { payment_id, user_id },
 			include: [
 				{
 					model: User,
@@ -264,18 +258,16 @@ exports.getPaymentDetails = async (req, res) => {
 		if (!payment) {
 			return res.status(400).json({
 				success: false,
-				message: "payment details not found.",
+				message: "Payment details not found.",
 			});
 		}
 
-		const findCartItems = payment.order_details.order_items; // Flatten the order_items arrays into a single array
+		const findCartItems = payment.order_details.order_items;
 
-		// Find all cart items where product_id is in the array of order_items
+		// Fetch cart items related to the order
 		const cartItems = await Cart.findAll({
 			where: {
-				cart_id: {
-					[Op.in]: findCartItems,
-				},
+				cart_id: { [Op.in]: findCartItems },
 			},
 			include: [
 				{
@@ -286,13 +278,12 @@ exports.getPaymentDetails = async (req, res) => {
 		});
 
 		const data = JSON.parse(JSON.stringify(payment));
-
 		data.cart_details = cartItems;
 
 		return res.status(200).json({
 			success: true,
 			message: "Payment fetched successfully!",
-			data: data,
+			data,
 		});
 	} catch (error) {
 		return res.status(500).json({

@@ -3,35 +3,56 @@ const User = require("../../models/user");
 
 exports.getAllUsers = async (req, res) => {
 	try {
-		// Fetch all users
-
 		const { page, limit, search } = req.query;
-		// Fetch all categories
 
 		const pageNumber = Number(page) || 1;
 		const pageSize = Number(limit) || 10;
 
+		// Fetch users with pagination and search
 		const users = await User.findAll({
 			where: {
-				first_name: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
+				[Op.or]: [
+					{
+						first_name: {
+							[Op.like]: `%${search}%`, // Search by first name
+						},
+					},
+					{
+						last_name: {
+							[Op.like]: `%${search}%`, // Search by last name
+						},
+					},
+					{
+						email: {
+							[Op.like]: `%${search}%`, // Search by email
+						},
+					},
+				],
 			},
 			limit: pageSize, // Number of items per page
 			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
 		});
 
-		const total_users = await User.findAll({
+		// Fetch total count of users for pagination
+		const totalUsersCount = await User.count({
 			where: {
-				first_name: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
-				last_name: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
-				email: {
-					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
-				},
+				[Op.or]: [
+					{
+						first_name: {
+							[Op.like]: `%${search}%`, // Search by first name
+						},
+					},
+					{
+						last_name: {
+							[Op.like]: `%${search}%`, // Search by last name
+						},
+					},
+					{
+						email: {
+							[Op.like]: `%${search}%`, // Search by email
+						},
+					},
+				],
 			},
 		});
 
@@ -39,12 +60,13 @@ exports.getAllUsers = async (req, res) => {
 			success: true,
 			message: "Users fetched successfully!",
 			data: users,
-			total_count: Math.ceil(total_users.length / parseInt(limit, 10)),
+			total_count: totalUsersCount, // Total number of users
+			total_pages: Math.ceil(totalUsersCount / pageSize), // Total number of pages
 		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
-			message: "Failed to fetch user",
+			message: "Failed to fetch users",
 			error: error.message,
 		});
 	}
@@ -52,22 +74,22 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserDetails = async (req, res) => {
 	try {
-		const { user_id } = req.query; // Extract user ID from the request query
+		const { user_id } = req.query;
 
-		// Validate Inputs
+		// Validate input
 		if (!user_id) {
 			return res.status(400).json({
 				success: false,
-				message: "User id is required.",
+				message: "User ID is required.",
 			});
 		}
 
 		// Fetch the user by ID
-		const Users = await User.findOne({
+		const user = await User.findOne({
 			where: { user_id },
 		});
 
-		if (!Users) {
+		if (!user) {
 			return res.status(404).json({
 				success: false,
 				message: "User not found.",
@@ -77,7 +99,7 @@ exports.getUserDetails = async (req, res) => {
 		return res.status(200).json({
 			success: true,
 			message: "User fetched successfully!",
-			data: Users,
+			data: user,
 		});
 	} catch (error) {
 		return res.status(500).json({

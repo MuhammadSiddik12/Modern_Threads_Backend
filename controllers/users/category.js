@@ -36,6 +36,7 @@ exports.getCategoryDetails = async (req, res) => {
 			where: { category_id },
 		});
 
+		// Check if the category exists
 		if (!category) {
 			return res.status(404).json({
 				success: false,

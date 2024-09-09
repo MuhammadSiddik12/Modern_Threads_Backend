@@ -11,6 +11,7 @@ exports.createOrder = async (req, res) => {
 
 		const { shipping_address, billing_address, order_items } = req.body;
 
+		// Validate inputs
 		if (!shipping_address || !billing_address || !order_items) {
 			return res.status(400).json({
 				success: false,
@@ -19,6 +20,7 @@ exports.createOrder = async (req, res) => {
 			});
 		}
 
+		// Find cart items from the provided order_items
 		const findCart = await Cart.findAll({
 			where: { cart_id: { [Op.in]: order_items } },
 		});
@@ -30,6 +32,7 @@ exports.createOrder = async (req, res) => {
 			});
 		}
 
+		// Check if an order with the same items already exists
 		const findOrder = await sequelize.query(
 			"SELECT * FROM orders WHERE order_items @> :orderItems::jsonb;",
 			{
@@ -41,10 +44,11 @@ exports.createOrder = async (req, res) => {
 		if (findOrder.length) {
 			return res.status(400).json({
 				success: false,
-				message: "Order alredy created.",
+				message: "Order already created.",
 			});
 		}
 
+		// Calculate the total price of the cart items
 		const totalPrice = findCart.reduce((accumulator, currentValue) => {
 			return accumulator + parseFloat(currentValue.price);
 		}, 0); // Start with an initial value of 0
@@ -85,6 +89,7 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllMyOrders = async (req, res) => {
 	try {
+		// Fetch all orders with user details
 		const orders = await Order.findAll({
 			include: [
 				{
@@ -95,9 +100,10 @@ exports.getAllMyOrders = async (req, res) => {
 			],
 		});
 
-		const findCartItems = orders.flatMap((order) => order.order_items); // Flatten the order_items arrays into a single array
+		// Flatten the order_items arrays into a single array
+		const findCartItems = orders.flatMap((order) => order.order_items);
 
-		// Find all cart items where product_id is in the array of order_items
+		// Find all cart items where cart_id is in the array of order_items
 		const cartItems = await Cart.findAll({
 			where: {
 				cart_id: {
@@ -140,6 +146,7 @@ exports.getOrderDetailsById = async (req, res) => {
 	try {
 		const { order_id } = req.query;
 
+		// Validate input
 		if (!order_id) {
 			return res.status(400).json({
 				success: false,
@@ -147,6 +154,7 @@ exports.getOrderDetailsById = async (req, res) => {
 			});
 		}
 
+		// Fetch the order by ID with user details
 		const order = await Order.findOne({
 			where: {
 				order_id: order_id,
@@ -163,11 +171,11 @@ exports.getOrderDetailsById = async (req, res) => {
 		if (!order) {
 			return res.status(400).json({
 				success: false,
-				message: "order details not found.",
+				message: "Order details not found.",
 			});
 		}
 
-		// Find all cart items where product_id is in the array of order_items
+		// Find all cart items where cart_id is in the array of order_items
 		const cartItems = await Cart.findAll({
 			where: {
 				cart_id: {
@@ -182,7 +190,7 @@ exports.getOrderDetailsById = async (req, res) => {
 			],
 		});
 
-		// Integrate cart items into order
+		// Integrate cart items into the order
 		const ordersWithCart = {
 			...order.toJSON(),
 			cart_items: cartItems.filter((cartItem) =>
@@ -208,13 +216,15 @@ exports.cancelOrderById = async (req, res) => {
 	try {
 		const { order_id } = req.query;
 
+		// Validate input
 		if (!order_id) {
 			return res.status(400).json({
 				success: false,
-				message: "order id is required.",
+				message: "Order id is required.",
 			});
 		}
 
+		// Find the order by ID
 		const order = await Order.findOne({
 			where: {
 				order_id: order_id,
@@ -224,10 +234,11 @@ exports.cancelOrderById = async (req, res) => {
 		if (!order) {
 			return res.status(400).json({
 				success: false,
-				message: "order details not found.",
+				message: "Order details not found.",
 			});
 		}
 
+		// Delete the order
 		await order.destroy();
 
 		return res.status(200).json({

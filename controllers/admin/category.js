@@ -3,10 +3,9 @@ const Category = require("../../models/category");
 
 exports.createCategory = async (req, res) => {
 	try {
-		// Collect Category Info
 		const { category_name, category_image } = req.body;
 
-		// Validate Inputs
+		// Validate input fields
 		if (!category_name) {
 			return res.status(400).json({
 				success: false,
@@ -14,28 +13,30 @@ exports.createCategory = async (req, res) => {
 			});
 		}
 
+		// Check if the category already exists
 		const findCategory = await Category.findOne({
-			where: { category_name: category_name },
+			where: { category_name },
 		});
 
 		if (findCategory) {
 			return res.status(400).json({
 				success: false,
-				message: "Category already exist.",
+				message: "Category already exists.",
 			});
 		}
 
+		// Generate a unique category ID
 		let timestamp = Date.now();
 		let lastSixDigits = timestamp.toString().slice(-6);
 
-		// Create Category Record
+		// Create a new category record
 		const newCategory = await Category.create({
 			category_name,
 			category_id: `cate${lastSixDigits}`,
 			category_image,
 		});
 
-		// Send Confirmation
+		// Send confirmation response
 		return res.status(201).json({
 			success: true,
 			message: "Category created successfully!",
@@ -54,15 +55,15 @@ exports.updateCategory = async (req, res) => {
 	try {
 		const { category_id, category_name, category_image } = req.body;
 
-		// Validate Inputs
+		// Validate input fields
 		if (!category_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Category id is required.",
+				message: "Category ID is required.",
 			});
 		}
 
-		// find Category Record
+		// Find the category record
 		const category = await Category.findOne({
 			where: { category_id, status: "active" },
 		});
@@ -75,12 +76,13 @@ exports.updateCategory = async (req, res) => {
 		}
 
 		// Update category details
-		category.category_name = category_name;
-		category.category_image = category_image;
+		category.category_name = category_name || category.category_name;
+		category.category_image = category_image || category.category_image;
 
+		// Save the updated category
 		await category.save();
 
-		// Send Confirmation
+		// Send confirmation response
 		return res.status(200).json({
 			success: true,
 			message: "Category updated successfully!",
@@ -97,17 +99,17 @@ exports.updateCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
 	try {
-		const { category_id } = req.query; // Extract category ID from the request body
+		const { category_id } = req.query; // Extract category ID from query
 
-		// Validate Inputs
+		// Validate input fields
 		if (!category_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Category id is required.",
+				message: "Category ID is required.",
 			});
 		}
 
-		// Validate and Check Category Existence
+		// Find the category record
 		const category = await Category.findOne({
 			where: { category_id, status: "active" },
 		});
@@ -119,10 +121,10 @@ exports.deleteCategory = async (req, res) => {
 			});
 		}
 
-		// Delete Category Record
-		await category.destroy();
+		// Soft delete the category by setting status to inactive
+		await category.update({ status: "inactive" });
 
-		// Send Confirmation
+		// Send confirmation response
 		return res.status(200).json({
 			success: true,
 			message: "Category deleted successfully!",
@@ -140,11 +142,11 @@ exports.deleteCategory = async (req, res) => {
 exports.getAllCategories = async (req, res) => {
 	try {
 		const { page, limit, search } = req.query;
-		// Fetch all categories
 
 		const pageNumber = Number(page) || 1;
 		const pageSize = Number(limit) || 10;
 
+		// Fetch categories with pagination and search
 		const categories = await Category.findAll({
 			where: {
 				category_name: {
@@ -155,7 +157,8 @@ exports.getAllCategories = async (req, res) => {
 			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
 		});
 
-		const total_categories = await Category.findAll({
+		// Fetch total count of categories for pagination
+		const total_categories = await Category.count({
 			where: {
 				category_name: {
 					[Op.like]: `%${search}%`, // Search by category name (case insensitive)
@@ -167,7 +170,7 @@ exports.getAllCategories = async (req, res) => {
 			success: true,
 			message: "Categories fetched successfully!",
 			data: categories,
-			total_count: Math.ceil(total_categories.length / parseInt(limit, 10)),
+			total_count: total_categories,
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -180,13 +183,13 @@ exports.getAllCategories = async (req, res) => {
 
 exports.getCategoryDetails = async (req, res) => {
 	try {
-		const { category_id } = req.query; // Extract category ID from the request query
+		const { category_id } = req.query; // Extract category ID from query
 
-		// Validate Inputs
+		// Validate input fields
 		if (!category_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Category id is required.",
+				message: "Category ID is required.",
 			});
 		}
 

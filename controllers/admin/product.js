@@ -13,19 +13,21 @@ exports.addProduct = async (req, res) => {
 			product_images,
 		} = req.body;
 
-		const product = await Product.findOne({
+		// Check if the product already exists
+		const existingProduct = await Product.findOne({
 			where: { product_name },
 		});
 
-		if (product) {
+		if (existingProduct) {
 			return res.status(400).json({
 				success: false,
-				message: "Product alredy exist.",
+				message: "Product already exists.",
 			});
 		}
 
-		let timestamp = Date.now();
-		let lastSixDigits = timestamp.toString().slice(-6);
+		// Generate a unique product ID
+		const timestamp = Date.now();
+		const lastSixDigits = timestamp.toString().slice(-6);
 
 		// Create a new product
 		const newProduct = await Product.create({
@@ -64,16 +66,17 @@ exports.updateProduct = async (req, res) => {
 			product_images,
 		} = req.body;
 
+		// Validate input
 		if (!product_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Product id is required.",
+				message: "Product ID is required.",
 			});
 		}
 
 		// Find product by ID
 		const product = await Product.findOne({
-			where: { product_id: product_id },
+			where: { product_id },
 		});
 
 		if (!product) {
@@ -110,18 +113,18 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
 	try {
 		const { product_id } = req.query;
-		console.log("🚀 ~ exports.deleteProduct ~ product_id:", product_id);
 
+		// Validate input
 		if (!product_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Product id is required.",
+				message: "Product ID is required.",
 			});
 		}
 
 		// Find product by ID
 		const product = await Product.findOne({
-			where: { product_id: product_id },
+			where: { product_id },
 		});
 
 		if (!product) {
@@ -150,25 +153,23 @@ exports.deleteProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
 	try {
-		// Fetch all orders
 		const { page, limit, search } = req.query;
-		// Fetch all categories
 
 		const pageNumber = Number(page) || 1;
 		const pageSize = Number(limit) || 10;
 
-		// Fetch all products
+		// Fetch products with pagination and search
 		const products = await Product.findAll({
 			where: {
 				[Op.or]: [
 					{
 						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`, // Search by product name
 						},
 					},
 					{
 						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`, // Search by product description
 						},
 					},
 				],
@@ -176,42 +177,36 @@ exports.getAllProducts = async (req, res) => {
 			include: [
 				{
 					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+					attributes: ["category_id", "category_name"], // Include category details
 				},
 			],
 			limit: pageSize, // Number of items per page
 			offset: (pageNumber - 1) * pageSize, // Calculate offset for pagination
 		});
 
-		// Fetch all products
-		const total_products = await Product.findAll({
+		// Fetch total count of products for pagination
+		const totalProductsCount = await Product.count({
 			where: {
 				[Op.or]: [
 					{
 						product_name: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`, // Search by product name
 						},
 					},
 					{
 						description: {
-							[Op.like]: `%${search}%`, // Search by category name (case insensitive)
+							[Op.like]: `%${search}%`, // Search by product description
 						},
 					},
 				],
 			},
-			include: [
-				{
-					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
-				},
-			],
 		});
 
 		return res.status(200).json({
 			success: true,
 			message: "Products fetched successfully!",
 			data: products,
-			total_count: Math.ceil(total_products.length / parseInt(limit, 10)),
+			total_count: Math.ceil(totalProductsCount / pageSize), // Total number of pages
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -226,20 +221,21 @@ exports.getProductById = async (req, res) => {
 	try {
 		const { product_id } = req.query;
 
+		// Validate input
 		if (!product_id) {
 			return res.status(400).json({
 				success: false,
-				message: "Product id is required.",
+				message: "Product ID is required.",
 			});
 		}
 
 		// Fetch the product by ID
 		const product = await Product.findOne({
-			where: { product_id: product_id },
+			where: { product_id },
 			include: [
 				{
 					model: Category,
-					attributes: ["category_id", "category_name"], // Specify the attributes you need from Category
+					attributes: ["category_id", "category_name"], // Include category details
 				},
 			],
 		});

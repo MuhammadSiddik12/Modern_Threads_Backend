@@ -8,6 +8,7 @@ exports.addToCart = async (req, res) => {
 
 		const user_id = req.userId;
 
+		// Validate that product_id and quantity are provided
 		if (!product_id || !quantity) {
 			return res.status(400).json({
 				success: false,
@@ -18,6 +19,7 @@ exports.addToCart = async (req, res) => {
 		// Find the product to get the price
 		const product = await Product.findOne({ where: { product_id } });
 
+		// Check if the product exists
 		if (!product) {
 			return res.status(404).json({
 				success: false,
@@ -25,7 +27,7 @@ exports.addToCart = async (req, res) => {
 			});
 		}
 
-		// Find the cart item
+		// Check if the product is already in the cart for the user
 		const checkCartItem = await Cart.findOne({
 			where: { product_id: product_id, order_created: false },
 		});
@@ -40,10 +42,10 @@ exports.addToCart = async (req, res) => {
 		let timestamp = Date.now();
 		let lastSixDigits = timestamp.toString().slice(-5);
 
-		// Calculate the price based on the quantity
+		// Calculate the total price based on quantity
 		const price = parseFloat(product.price) * quantity;
 
-		// Create a new cart entry
+		// Create a new cart item
 		const cartItem = await Cart.create({
 			cart_id: `cart${lastSixDigits}`, // Unique ID for the cart item
 			product_id,
@@ -70,6 +72,7 @@ exports.updateCart = async (req, res) => {
 	try {
 		const { cart_id, quantity } = req.body;
 
+		// Validate that cart_id and quantity are provided
 		if (!cart_id || !quantity) {
 			return res.status(400).json({
 				success: false,
@@ -77,11 +80,12 @@ exports.updateCart = async (req, res) => {
 			});
 		}
 
-		// Find the cart item
+		// Find the cart item to update
 		const cartItem = await Cart.findOne({
 			where: { cart_id, order_created: false },
 		});
 
+		// Check if the cart item exists
 		if (!cartItem) {
 			return res.status(404).json({
 				success: false,
@@ -94,6 +98,7 @@ exports.updateCart = async (req, res) => {
 			where: { product_id: cartItem.product_id },
 		});
 
+		// Check if the product exists
 		if (!product) {
 			return res.status(404).json({
 				success: false,
@@ -144,6 +149,7 @@ exports.getAllCartItems = async (req, res) => {
 			],
 		});
 
+		// Check if there are no cart items
 		if (cartItems.length === 0) {
 			return res.status(200).json({
 				success: true,
@@ -153,6 +159,7 @@ exports.getAllCartItems = async (req, res) => {
 			});
 		}
 
+		// Fetch order details related to cart items
 		const findOrder = await sequelize.query(
 			"SELECT * FROM orders WHERE order_items @> :orderItems::jsonb",
 			{
@@ -182,6 +189,7 @@ exports.removeItem = async (req, res) => {
 	try {
 		const { cart_id } = req.query;
 
+		// Validate that cart_id is provided
 		if (!cart_id) {
 			return res.status(400).json({
 				success: false,
@@ -189,10 +197,12 @@ exports.removeItem = async (req, res) => {
 			});
 		}
 
+		// Find the cart item to remove
 		const cartItem = await Cart.findOne({
 			where: { cart_id, order_created: false },
 		});
 
+		// Check if the cart item exists
 		if (!cartItem) {
 			return res.status(404).json({
 				success: false,
@@ -200,6 +210,7 @@ exports.removeItem = async (req, res) => {
 			});
 		}
 
+		// Remove the cart item
 		await cartItem.destroy();
 
 		return res.status(200).json({

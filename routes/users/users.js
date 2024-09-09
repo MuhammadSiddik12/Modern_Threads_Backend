@@ -1,34 +1,43 @@
-const express = require("express");
-const router = express.Router();
-const userController = require("../../controllers/users/users");
-const authenticateToken = require("../../middleware/authUserToken");
-const productRouter = require("./product");
-const categoryRouter = require("./category");
-const cartRouter = require("./cart");
-const paymentRouter = require("./payments");
+const express = require("express"); // Express framework
+const router = express.Router(); // Create a new router object
+const userController = require("../../controllers/users/users"); // Import user controller
+const authenticateToken = require("../../middleware/authUserToken"); // Middleware to authenticate user tokens
+const productRouter = require("./product"); // Import product routes
+const categoryRouter = require("./category"); // Import category routes
+const cartRouter = require("./cart"); // Import cart routes
+const paymentRouter = require("./payments"); // Import payment routes
 
 /* GET users listing. */
 router.get("/", function (req, res, next) {
-	res.send("respond with a resource");
+	res.send("respond with a resource"); // Respond with a placeholder message
 });
+
+// Register a new user
 router.post("/userRegister", userController.userRegister);
+
+// Login a user
 router.post("/userLogin", userController.userLogin);
+
+// Get details of the authenticated user (requires authentication)
 router.get("/getUserDetails", authenticateToken, userController.getUserDetails);
+
+// Edit the profile of the authenticated user (requires authentication)
 router.put(
 	"/editUserProfile",
 	authenticateToken,
 	userController.editUserProfile
 );
-// product routes
+
+// Use product routes under "/products"
 router.use("/products", productRouter);
 
-// category routes
+// Use category routes under "/category"
 router.use("/category", categoryRouter);
 
-// cart routes
+// Use cart routes under "/cart"
 router.use("/cart", cartRouter);
 
-// payment routes
+// Use payment routes under "/payments"
 router.use("/payments", paymentRouter);
 
-module.exports = router;
+module.exports = router; // Export the router for use in other modules

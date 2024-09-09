@@ -11,7 +11,7 @@ exports.adminSignup = async (req, res) => {
 	try {
 		const { admin_name, admin_email, admin_password } = req.body;
 
-		// Validate Inputs
+		// Validate input fields
 		if (!admin_name || !admin_email || !admin_password) {
 			return res.status(400).json({
 				success: false,
@@ -31,10 +31,11 @@ exports.adminSignup = async (req, res) => {
 		// Hash the password
 		const hashedPassword = await bcrypt.hash(admin_password, 10);
 
+		// Generate a unique admin ID
 		let timestamp = Date.now();
 		let lastSixDigits = timestamp.toString().slice(-5);
 
-		// Create new Admin record
+		// Create a new admin record
 		const newAdmin = await Admin.create({
 			admin_id: `admin${lastSixDigits}`,
 			admin_name,
@@ -43,14 +44,13 @@ exports.adminSignup = async (req, res) => {
 		});
 
 		const data = JSON.parse(JSON.stringify(newAdmin));
-		delete data.admin_password;
+		delete data.admin_password; // Remove sensitive data
 
+		// Generate JWT token
 		const token = jwt.sign(
 			{ adminId: data.admin_id },
 			process.env.JWT_SECRET_ADMIN,
-			{
-				expiresIn: "24h",
-			}
+			{ expiresIn: "24h" }
 		);
 
 		return res.status(201).json({
@@ -72,7 +72,7 @@ exports.adminLogin = async (req, res) => {
 	try {
 		const { admin_email, admin_password } = req.body;
 
-		// Validate Inputs
+		// Validate input fields
 		if (!admin_email || !admin_password) {
 			return res.status(400).json({
 				success: false,
@@ -80,10 +80,8 @@ exports.adminLogin = async (req, res) => {
 			});
 		}
 
-		// Find Admin by Email
-		const admin = await Admin.findOne({
-			where: { admin_email },
-		});
+		// Find admin by email
+		const admin = await Admin.findOne({ where: { admin_email } });
 
 		if (!admin) {
 			return res.status(404).json({
@@ -92,7 +90,7 @@ exports.adminLogin = async (req, res) => {
 			});
 		}
 
-		// Check Password
+		// Verify password
 		const validPassword = await bcrypt.compare(
 			admin_password,
 			admin.admin_password
@@ -105,17 +103,15 @@ exports.adminLogin = async (req, res) => {
 			});
 		}
 
-		// Generate Session Token
+		// Generate JWT token
 		const token = jwt.sign(
 			{ adminId: admin.admin_id },
 			process.env.JWT_SECRET_ADMIN,
-			{
-				expiresIn: "24h",
-			}
+			{ expiresIn: "24h" }
 		);
 
 		const data = JSON.parse(JSON.stringify(admin));
-		delete data.admin_password;
+		delete data.admin_password; // Remove sensitive data
 
 		return res.status(200).json({
 			success: true,
@@ -138,7 +134,7 @@ exports.editAdminProfile = async (req, res) => {
 
 		const { admin_name } = req.body;
 
-		// Find the admin by user_id
+		// Find the admin by ID
 		const admin = await Admin.findOne({
 			where: { admin_id: adminId },
 			attributes: { exclude: ["admin_password"] },
@@ -153,7 +149,7 @@ exports.editAdminProfile = async (req, res) => {
 		// Update admin details
 		admin.admin_name = admin_name || admin.admin_name;
 
-		// Save the updated admin details
+		// Save updated admin details
 		await admin.save();
 
 		return res.status(200).json({
@@ -174,7 +170,7 @@ exports.getAdminDetails = async (req, res) => {
 	try {
 		const { adminId } = req;
 
-		// Find the admin by admin_id, excluding the admin_password
+		// Find the admin by ID, excluding the password
 		const admin = await Admin.findOne({
 			where: { admin_id: adminId },
 			attributes: { exclude: ["admin_password"] },
@@ -183,12 +179,14 @@ exports.getAdminDetails = async (req, res) => {
 		if (!admin) {
 			return res
 				.status(404)
-				.json({ success: false, message: "admin not found" });
+				.json({ success: false, message: "Admin not found" });
 		}
 
-		return res
-			.status(200)
-			.json({ success: true, message: "Admin details fetched!", data: admin });
+		return res.status(200).json({
+			success: true,
+			message: "Admin details fetched!",
+			data: admin,
+		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
@@ -202,7 +200,7 @@ exports.dashboardDetails = async (req, res) => {
 	try {
 		const { adminId } = req;
 
-		// Find the admin by admin_id, excluding the admin_password
+		// Find the admin by ID, excluding the password
 		const admin = await Admin.findOne({
 			where: { admin_id: adminId },
 			attributes: { exclude: ["admin_password"] },
@@ -211,14 +209,15 @@ exports.dashboardDetails = async (req, res) => {
 		if (!admin) {
 			return res
 				.status(404)
-				.json({ success: false, message: "admin not found" });
+				.json({ success: false, message: "Admin not found" });
 		}
 
+		// Fetch statistics for dashboard
 		const users = await User.count();
 		const products = await Product.count();
 		const orders = await Order.count();
-		const paymens = await Payment.count();
-		const category = await Category.count();
+		const payments = await Payment.count();
+		const categories = await Category.count();
 
 		return res.status(200).json({
 			success: true,
@@ -227,14 +226,14 @@ exports.dashboardDetails = async (req, res) => {
 				totalUsers: users,
 				totalProducts: products,
 				totalOrders: orders,
-				totalPayments: paymens,
-				totalCategory: category,
+				totalPayments: payments,
+				totalCategories: categories,
 			},
 		});
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
-			message: "Failed to retrieve admin details",
+			message: "Failed to retrieve dashboard details",
 			error: error.message,
 		});
 	}

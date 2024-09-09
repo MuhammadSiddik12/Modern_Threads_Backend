@@ -5,7 +5,7 @@ const path = require("path");
 const storage = multer.diskStorage({
 	destination: (req, file, cb) => {
 		// Define the destination folder for uploaded files
-		cb(null, "uploads/"); // Make sure this folder exists or create it
+		cb(null, "uploads/"); // Ensure this folder exists or create it
 	},
 	filename: (req, file, cb) => {
 		// Define the naming convention for uploaded files
@@ -20,16 +20,16 @@ const fileFilter = (req, file, cb) => {
 	const mimetype = filetypes.test(file.mimetype);
 
 	if (mimetype && extname) {
-		return cb(null, true);
+		return cb(null, true); // Accept the file
 	} else {
-		cb("Error: Images only allowed!");
+		cb("Error: Images only allowed!"); // Reject the file
 	}
 };
 
 // Initialize multer with storage, limits, and file filter
 const upload = multer({
 	storage: storage,
-	limits: { fileSize: 15 * 1024 * 1024 }, // Limit file size to 5MB
+	limits: { fileSize: 15 * 1024 * 1024 }, // Limit file size to 15MB
 	fileFilter: fileFilter,
 }).single("image"); // Single file upload with the name 'image'
 

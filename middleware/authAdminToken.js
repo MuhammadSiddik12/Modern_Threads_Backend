@@ -6,17 +6,22 @@ const authenticateAdminToken = (req, res, next) => {
 	const authHeader = req.headers["authorization"];
 	const token = authHeader && authHeader.split(" ")[1]; // Expecting 'Bearer TOKEN'
 
+	// If no token is provided, return a 401 Unauthorized error
 	if (!token) {
 		return res.status(401).json({ success: false, message: "Access denied." });
 	}
 
 	try {
-		// Verify the token
+		// Verify the token using the secret key from environment variables
 		const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
 
-		req.adminId = decoded.adminId; // Attach the decoded payload to the request object
-		next(); // Proceed to the next middleware or route handler
+		// Attach the decoded payload to the request object for further use
+		req.adminId = decoded.adminId;
+
+		// Proceed to the next middleware or route handler
+		next();
 	} catch (error) {
+		// If token verification fails, return a 401 Unauthorized error
 		return res.status(401).json({ success: false, message: "Access denied." });
 	}
 };

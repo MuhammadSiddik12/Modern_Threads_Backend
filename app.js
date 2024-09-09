@@ -1,43 +1,41 @@
-require("dotenv").config({ path: ".env" });
-const createError = require("http-errors");
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-require("./models/index");
-const cors = require("cors");
-const indexRouter = require("./routes/index");
+require("dotenv").config({ path: ".env" }); // Load environment variables from .env file
+const createError = require("http-errors"); // Middleware for creating HTTP errors
+const express = require("express"); // Express framework
+const path = require("path"); // Path utility for file paths
+const cookieParser = require("cookie-parser"); // Middleware for parsing cookies
+const logger = require("morgan"); // HTTP request logger middleware
+require("./models/index"); // Import and initialize database models
+const cors = require("cors"); // Middleware for enabling CORS
+const indexRouter = require("./routes/index"); // Import index route handler
 
-const app = express();
+const app = express(); // Create an Express application
 
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
+// View engine setup
+app.set("views", path.join(__dirname, "views")); // Set the views directory
+app.set("view engine", "ejs"); // Set the view engine to EJS
 
-app.use(cors());
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(cors()); // Enable CORS
+app.use(logger("dev")); // Use logger middleware in development mode
+app.use(express.json()); // Parse JSON request bodies
+app.use(express.urlencoded({ extended: false })); // Parse URL-encoded request bodies
+app.use(cookieParser()); // Parse cookies
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files from the public directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the uploads directory
 
-app.use("/", indexRouter);
+app.use("/", indexRouter); // Use the index router for all routes starting with /
 
-// catch 404 and forward to error handler
 app.use(function (req, res, next) {
-	next(createError(404));
+	// Handle 404 errors (not found)
+	next(createError(404)); // Forward to error handler with 404 status
 });
 
-// error handler
 app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
-	res.locals.message = err.message;
-	res.locals.error = req.app.get("env") === "development" ? err : {};
+	// Error handler
+	res.locals.message = err.message; // Provide error message to locals
+	res.locals.error = req.app.get("env") === "development" ? err : {}; // Provide error details in development
 
-	// render the error page
-	res.status(err.status || 500);
-	res.render("error");
+	res.status(err.status || 500); // Set response status
+	res.render("error"); // Render the error page
 });
 
-module.exports = app;
+module.exports = app; // Export the app for use in other modules

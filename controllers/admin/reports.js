@@ -203,7 +203,9 @@ exports.generateReport = async (req, res) => {
 // Get all reports
 exports.getAllReports = async (req, res) => {
 	try {
-		const findReports = await Reports.findAll({}); // Fetch all reports from the database
+		const findReports = await Reports.findAll({
+			order: [["created_at", "DESC"]], // Sort by report_type in ascending order
+		}); // Fetch all reports from the database
 
 		return res.status(200).json({
 			success: true,

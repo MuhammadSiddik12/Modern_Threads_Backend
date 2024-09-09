@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: false })); // Parse URL-encoded request b
 app.use(cookieParser()); // Parse cookies
 app.use(express.static(path.join(__dirname, "public"))); // Serve static files from the public directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files from the uploads directory
+app.use("/reports", express.static(path.join(__dirname, "reports"))); // Serve static files from the uploads directory
 
 app.use("/", indexRouter); // Use the index router for all routes starting with /
 

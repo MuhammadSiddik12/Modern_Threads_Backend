@@ -59,6 +59,9 @@ exports.createPaymentCheckout = async (req, res) => {
 			});
 		}
 
+		let timestamp = Date.now();
+		let lastSixDigits = timestamp.toString().slice(-6);
+
 		// Create a Stripe checkout session
 		const session = await stripe.checkout.sessions.create({
 			payment_method_types: ["card"],
@@ -73,12 +76,9 @@ exports.createPaymentCheckout = async (req, res) => {
 				quantity: item.quantity,
 			})),
 			mode: "payment",
-			success_url: "https://localhost:3001/success",
-			cancel_url: "https://localhost:3001/cancel",
+			success_url: `https://modernthreads.vercel.app/success/pay${lastSixDigits}`,
+			cancel_url: `https://modernthreads.vercel.app/failed/pay${lastSixDigits}`,
 		});
-
-		let timestamp = Date.now();
-		let lastSixDigits = timestamp.toString().slice(-6);
 
 		// Create a payment record
 		await Payment.create({

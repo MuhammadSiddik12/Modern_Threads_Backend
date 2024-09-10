@@ -112,7 +112,7 @@ exports.createPaymentCheckout = async (req, res) => {
 	}
 };
 
-exports.webhook = (req, res) => {
+exports.webhook = async (req, res) => {
 	try {
 		const sig = req.headers["stripe-signature"];
 		let event;
@@ -135,11 +135,28 @@ exports.webhook = (req, res) => {
 				const session = event.data.object;
 				// Perform actions based on the session object
 				console.log("Checkout Session completed:", session);
+
+				let payment = await Payment.findOne({
+					where: { transaction_id: session.id },
+				});
+
+				if (payment) {
+					payment.payment_status = session.status;
+					payment.save();
+				}
 				break;
 			case "invoice.payment_succeeded":
 				const invoice = event.data.object;
 				// Perform actions based on the invoice object
 				console.log("Invoice payment succeeded:", invoice);
+				let findPayment = await Payment.findOne({
+					where: { transaction_id: session.id },
+				});
+
+				if (findPayment) {
+					findPayment.payment_status = session.status;
+					findPayment.save();
+				}
 				break;
 			default:
 				console.log("Unhandled event type:", event.type);

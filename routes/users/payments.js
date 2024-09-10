@@ -29,4 +29,7 @@ router.get(
 	paymentController.getPaymentDetails
 );
 
+// Get all payments status from stripe webhook
+router.post("/webhook", paymentController.webhook);
+
 module.exports = router; // Export the router for use in other modules

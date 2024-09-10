@@ -114,20 +114,7 @@ exports.createPaymentCheckout = async (req, res) => {
 
 exports.webhook = async (req, res) => {
 	try {
-		const sig = req.headers["stripe-signature"];
-		let event;
-
-		// Verify the webhook signature
-		try {
-			event = stripe.webhooks.constructEvent(
-				req.body,
-				sig,
-				process.env.END_POINT_SECRET
-			);
-		} catch (err) {
-			console.log("Webhook Error:", err.message);
-			return res.status(400).json({ message: `Webhook Error: ${err.message}` });
-		}
+		let event = req.body;
 
 		// Handle the event
 		switch (event.type) {

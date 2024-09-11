@@ -80,6 +80,6 @@ Order.hasMany(Payment, {
 });
 
 // Sync all models (uncomment to create or alter database schema)
-// sequelize.sync({ alter: true }).then(() => {
-// 	console.log("Database & tables created!");
-// });
+sequelize.sync({ alter: true }).then(() => {
+	console.log("Database & tables created!");
+});

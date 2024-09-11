@@ -128,9 +128,19 @@ exports.webhook = async (req, res) => {
 				});
 
 				if (payment) {
-					payment.payment_status = session.status;
+					payment.payment_status = "success";
 					payment.save();
+
+					let order = await Order.findOne({
+						where: { order_id: payment?.order_id },
+					});
+
+					if (order) {
+						order.order_status = "Confirmed";
+						order.save();
+					}
 				}
+
 				break;
 			case "invoice.payment_succeeded":
 				const invoice = event.data.object;

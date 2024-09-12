@@ -73,6 +73,19 @@ exports.createOrder = async (req, res) => {
 			order_items,
 		});
 
+		// find all product based on cart product ids
+		const findProducts = await Product.findAll({
+			where: { product_id: { [Op.in]: findCart.map((e) => e.product_id) } },
+		});
+
+		findProducts.map((e) => {
+			const findQuantity = findCart.find((f) => f.product_id == e.product_id);
+			if (findQuantity) {
+				e.stock_quantity = findQuantity.quantity; // update stock quantity
+				e.save();
+			}
+		});
+
 		return res.status(201).json({
 			success: true,
 			message: "Order created successfully!",

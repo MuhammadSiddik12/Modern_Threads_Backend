@@ -12,7 +12,7 @@ exports.getAllProducts = async (req, res) => {
 		const pageSize = Number(limit);
 
 		// Fetch paginated products and total count
-		const { count: totalProducts, rows: products } =
+		let { count: totalProducts, rows: products } =
 			await Product.findAndCountAll({
 				where: {
 					[Op.or]: [
@@ -43,11 +43,13 @@ exports.getAllProducts = async (req, res) => {
 			});
 
 		if (user_id) {
+			products = JSON.parse(JSON.stringify(products));
 			// Fetch cart items for the user
 			const cartItems = await Cart.findAll({
 				where: {
 					product_id: { [Op.in]: products.map((e) => e.product_id) },
 					order_created: false,
+					user_id
 				},
 			});
 

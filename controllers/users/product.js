@@ -129,7 +129,13 @@ exports.getProductById = async (req, res) => {
 
 exports.getAllProductsByCategory = async (req, res) => {
 	try {
-		const { category_id, page = 1, limit = 10, search = "" } = req.query;
+		const {
+			category_id,
+			page = 1,
+			limit = 10,
+			search = "",
+			user_id,
+		} = req.query;
 
 		if (!category_id) {
 			return res.status(400).json({

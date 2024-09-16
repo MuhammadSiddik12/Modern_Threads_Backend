@@ -36,7 +36,6 @@ exports.userRegister = async (req, res) => {
 			last_name,
 			email,
 			password: hashedPassword,
-			phone_number,
 		});
 
 		const data = JSON.parse(JSON.stringify(newUser));

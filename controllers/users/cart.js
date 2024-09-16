@@ -29,7 +29,7 @@ exports.addToCart = async (req, res) => {
 
 		// Check if the product is already in the cart for the user
 		const checkCartItem = await Cart.findOne({
-			where: { product_id: product_id, order_created: false },
+			where: { product_id: product_id, order_created: false, user_id },
 		});
 
 		if (checkCartItem) {
@@ -71,6 +71,7 @@ exports.addToCart = async (req, res) => {
 exports.updateCart = async (req, res) => {
 	try {
 		const { cart_id, quantity } = req.body;
+		const user_id = req.userId;
 
 		// Validate that cart_id and quantity are provided
 		if (!cart_id || !quantity) {
@@ -82,7 +83,7 @@ exports.updateCart = async (req, res) => {
 
 		// Find the cart item to update
 		const cartItem = await Cart.findOne({
-			where: { cart_id, order_created: false },
+			where: { cart_id, order_created: false, user_id },
 		});
 
 		// Check if the cart item exists
@@ -188,6 +189,7 @@ exports.getAllCartItems = async (req, res) => {
 exports.removeItem = async (req, res) => {
 	try {
 		const { cart_id } = req.query;
+		const user_id = req.userId;
 
 		// Validate that cart_id is provided
 		if (!cart_id) {
@@ -199,7 +201,7 @@ exports.removeItem = async (req, res) => {
 
 		// Find the cart item to remove
 		const cartItem = await Cart.findOne({
-			where: { cart_id, order_created: false },
+			where: { cart_id, order_created: false, user_id },
 		});
 
 		// Check if the cart item exists

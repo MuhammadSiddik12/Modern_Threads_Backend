@@ -4,11 +4,11 @@ const Users = require("../../models/user");
 
 exports.userRegister = async (req, res) => {
 	try {
-		const { first_name, last_name, email, password, phone_number } = req.body;
+		const { first_name, last_name, email, password } = req.body;
 		console.log("🚀 ~ exports.userRegister= ~ req.body:", req.body);
 
 		// Validate input fields
-		if (!first_name || !last_name || !email || !password || !phone_number) {
+		if (!first_name || !last_name || !email || !password) {
 			return res
 				.status(400)
 				.json({ success: false, message: "All fields are required" });

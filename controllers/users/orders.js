@@ -102,8 +102,11 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllMyOrders = async (req, res) => {
 	try {
+		const user_id = req.userId;
+
 		// Fetch all orders with user details
 		const orders = await Order.findAll({
+			where: { user_id },
 			include: [
 				{
 					model: User,
@@ -122,6 +125,7 @@ exports.getAllMyOrders = async (req, res) => {
 				cart_id: {
 					[Op.in]: findCartItems,
 				},
+				user_id,
 			},
 			include: [
 				{
@@ -158,6 +162,7 @@ exports.getAllMyOrders = async (req, res) => {
 exports.getOrderDetailsById = async (req, res) => {
 	try {
 		const { order_id } = req.query;
+		const user_id = req.userId;
 
 		// Validate input
 		if (!order_id) {
@@ -171,6 +176,7 @@ exports.getOrderDetailsById = async (req, res) => {
 		const order = await Order.findOne({
 			where: {
 				order_id: order_id,
+				user_id,
 			},
 			include: [
 				{
@@ -228,6 +234,7 @@ exports.getOrderDetailsById = async (req, res) => {
 exports.cancelOrderById = async (req, res) => {
 	try {
 		const { order_id } = req.query;
+		const user_id = req.userId;
 
 		// Validate input
 		if (!order_id) {
@@ -241,6 +248,7 @@ exports.cancelOrderById = async (req, res) => {
 		const order = await Order.findOne({
 			where: {
 				order_id: order_id,
+				user_id,
 			},
 		});
 
